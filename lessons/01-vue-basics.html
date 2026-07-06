@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01 · Vue.js พื้นฐาน — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html" class="active"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 1 · พื้นฐาน 01/05</div>
+    <h1>Vue.js พื้นฐาน</h1>
+    <p class="lead">
+      โปรเจกต์ KL.Core.UI ใช้ <strong>Vue 2 (เวอร์ชัน 2.7.14) แบบ Options API</strong> — ไม่ใช่ Vue 3 และไม่ใช่ Composition API
+      ดังนั้นบทเรียนนี้จะสอน Vue 2 Options API ล้วน ๆ ให้แน่นก่อน ตัวอย่างในหน้านี้เป็น Vue จริงที่รันอยู่ในเบราว์เซอร์ (โหลดจาก CDN) ลองแก้ไข/กดปุ่มดูได้เลย
+    </p>
+
+    <h2>1. Vue instance คืออะไร</h2>
+    <p>
+      Vue app คือ object ที่บอกว่า "ข้อมูล (data) มีอะไรบ้าง" และ "เอาข้อมูลไปแสดงยังไง (template)"
+      เมื่อข้อมูลเปลี่ยน หน้าจอจะอัปเดตให้อัตโนมัติ (reactivity) โดยที่เราไม่ต้องไปสั่ง <code>document.getElementById(...).innerText = ...</code> เอง
+    </p>
+    <pre><code>new Vue({
+  el: "#app",           // ผูกกับ element ไหนใน HTML
+  data() {               // ข้อมูลของ component
+    return {
+      message: "สวัสดี Vue"
+    };
+  }
+});</code></pre>
+
+    <div class="playground">
+      <div class="pg-label">ตัวอย่างสด <span class="live">● LIVE</span></div>
+      <div class="pg-body">
+        <div id="demo-instance">
+          <p>{{ message }}</p>
+          <input v-model="message" placeholder="พิมพ์อะไรก็ได้..." />
+        </div>
+      </div>
+    </div>
+
+    <h2>2. Template syntax ที่ใช้บ่อย</h2>
+    <table>
+      <thead><tr><th>Syntax</th><th>ใช้ทำอะไร</th><th>ตัวอย่าง</th></tr></thead>
+      <tbody>
+        <tr><td><code>{{ }}</code></td><td>แสดงค่าตัวแปรลง text</td><td><code>{{ name }}</code></td></tr>
+        <tr><td><code>v-bind:attr</code> หรือ <code>:attr</code></td><td>ผูกค่าตัวแปรเข้ากับ attribute ของ element</td><td><code>:src="imgUrl"</code></td></tr>
+        <tr><td><code>v-on:event</code> หรือ <code>@event</code></td><td>ดักฟัง event เช่นคลิก</td><td><code>@click="onSave"</code></td></tr>
+        <tr><td><code>v-model</code></td><td>ผูก 2 ทาง (two-way binding) กับ input/form</td><td><code>v-model="username"</code></td></tr>
+        <tr><td><code>v-if / v-else-if / v-else</code></td><td>แสดง/ไม่แสดง element ตามเงื่อนไข (ไม่ render เลยถ้า false)</td><td><code>v-if="isLoggedIn"</code></td></tr>
+        <tr><td><code>v-show</code></td><td>สลับ CSS <code>display</code> (ยัง render อยู่ในหน้า DOM เสมอ)</td><td><code>v-show="isVisible"</code></td></tr>
+        <tr><td><code>v-for</code></td><td>วนลูป array/object เพื่อ render ซ้ำ ๆ (ต้องใส่ <code>:key</code> เสมอ)</td><td><code>v-for="item in items" :key="item.id"</code></td></tr>
+        <tr><td><code>v-bind:class</code></td><td>ผูก class แบบมีเงื่อนไข</td><td><code>:class="{active: isActive}"</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="playground">
+      <div class="pg-label">ตัวอย่างสด: v-if, v-for, v-model, @click <span class="live">● LIVE</span></div>
+      <div class="pg-body">
+        <div id="demo-directives">
+          <button class="primary" @click="showList = !showList">{{ showList ? 'ซ่อนลิสต์' : 'แสดงลิสต์' }}</button>
+          <div v-if="showList" style="margin-top:12px;">
+            <input v-model="newItem" placeholder="ชื่อสิ่งที่ต้องทำ" @keyup.enter="addItem" />
+            <button @click="addItem">เพิ่ม</button>
+            <ul>
+              <li v-for="(item, index) in items" :key="item.id">
+                <span :class="{ done: item.done }" @click="item.done = !item.done" style="cursor:pointer;">
+                  {{ item.text }}
+                </span>
+                <button @click="items.splice(index, 1)">ลบ</button>
+              </li>
+            </ul>
+            <p v-if="items.length === 0" style="color:var(--text-dim)">ยังไม่มีรายการ</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-title">v-if vs v-show — เมื่อไหร่ใช้อะไร</div>
+      ใช้ <code>v-if</code> เมื่อเงื่อนไขไม่ค่อยเปลี่ยน (เช่น แสดงหน้าจอตาม role) เพราะมันถอด/สร้าง element ใหม่ทุกครั้ง (ต้นทุนสูงกว่า)<br>
+      ใช้ <code>v-show</code> เมื่อต้องสลับไปมาบ่อย ๆ (เช่น เปิด/ปิด panel) เพราะมันแค่ซ่อนด้วย CSS เร็วกว่า
+    </div>
+
+    <h2>3. data, computed, methods, watch</h2>
+    <ul>
+      <li><strong>data</strong> — ตัวแปร/state ของ component (ต้องเป็น <code>function</code> ที่ return object เสมอใน component — ต่างจาก root instance ที่จะใส่ object ตรง ๆ ก็ได้)</li>
+      <li><strong>computed</strong> — ค่าที่ "คำนวณจาก data อื่น" และจะถูก cache ไว้ จะคำนวณใหม่ก็ต่อเมื่อ dependency เปลี่ยนเท่านั้น (เร็วกว่า method ถ้าถูกเรียกใช้ซ้ำ ๆ ใน template)</li>
+      <li><strong>methods</strong> — ฟังก์ชันทั่วไป เรียกเมื่อไหร่ก็ทำงานใหม่ทุกครั้ง เหมาะกับ event handler</li>
+      <li><strong>watch</strong> — ดักฟังว่า data/computed ตัวไหนเปลี่ยนค่า แล้วสั่งทำ side-effect (เช่น เรียก API, เขียน log)</li>
+    </ul>
+    <pre><code>export default {
+  data() {
+    return { price: 100, qty: 2 };
+  },
+  computed: {
+    total() {                      // ใช้ this.total ใน template ได้เลย เหมือนตัวแปร
+      return this.price * this.qty;
+    }
+  },
+  methods: {
+    increaseQty() {                // ใช้ this.increaseQty() หรือ @click="increaseQty"
+      this.qty++;
+    }
+  },
+  watch: {
+    qty(newVal, oldVal) {
+      console.log(`qty เปลี่ยนจาก ${oldVal} เป็น ${newVal}`);
+    }
+  }
+};</code></pre>
+
+    <div class="playground">
+      <div class="pg-label">ตัวอย่างสด: computed + watch <span class="live">● LIVE</span></div>
+      <div class="pg-body">
+        <div id="demo-computed">
+          <label>ราคาต่อชิ้น: <input type="number" v-model.number="price" style="width:80px" /></label>
+          <label style="margin-left:12px;">จำนวน: <input type="number" v-model.number="qty" style="width:60px" /></label>
+          <p>รวมทั้งหมด (computed): <strong>{{ total }}</strong> บาท</p>
+          <p style="color:var(--text-dim)">log การเปลี่ยนแปลง (watch): {{ lastChangeLog }}</p>
+        </div>
+      </div>
+    </div>
+
+    <h2>4. Component — แตกหน้าจอเป็นชิ้นเล็ก ๆ</h2>
+    <p>
+      Component คือ Vue instance ย่อยที่ใช้ซ้ำได้ มีของตัวเอง (data/methods) แต่คุยกับข้างนอกผ่าน 2 ทางเท่านั้น:
+    </p>
+    <div class="grid-cards">
+      <div class="card">
+        <div class="card-num">ลงมา (Parent → Child)</div>
+        <h4>Props</h4>
+        <p>Parent ส่งข้อมูลลงมาให้ Child ผ่าน attribute — Child ห้ามแก้ props ตรง ๆ (ให้ emit ขึ้นไปให้ parent แก้แทน)</p>
+      </div>
+      <div class="card">
+        <div class="card-num">ขึ้นไป (Child → Parent)</div>
+        <h4>Events ($emit)</h4>
+        <p>Child ยิง event บอก parent ว่า "มีอะไรเกิดขึ้น" parent ฟังด้วย <code>@event-name</code></p>
+      </div>
+    </div>
+    <pre><code>// Child.vue
+&lt;template&gt;
+  &lt;button @click="$emit('save', localValue)"&gt;บันทึก&lt;/button&gt;
+&lt;/template&gt;
+&lt;script&gt;
+export default {
+  props: {
+    initialValue: { type: String, default: "" }
+  },
+  data() {
+    return { localValue: this.initialValue };
+  }
+};
+&lt;/script&gt;
+
+// Parent.vue
+&lt;template&gt;
+  &lt;Child :initial-value="name" @save="onChildSave" /&gt;
+&lt;/template&gt;
+&lt;script&gt;
+import Child from "./Child.vue";
+export default {
+  components: { Child },
+  data() { return { name: "สมชาย" }; },
+  methods: {
+    onChildSave(value) {
+      console.log("child ส่งค่ามาว่า:", value);
+    }
+  }
+};
+&lt;/script&gt;</code></pre>
+
+    <div class="callout warn">
+      <div class="callout-title">กฎเหล็ก: ห้ามแก้ prop โดยตรงใน child</div>
+      <code>props: ['value']</code> แล้วไปเขียน <code>this.value = 'x'</code> ใน child — Vue จะเตือน (mutating a prop) เพราะข้อมูลควรไหลทางเดียวจาก parent เท่านั้น
+      ถ้าต้องแก้ ให้ copy มาเก็บใน <code>data</code> ของตัวเอง แล้ว emit event กลับไปให้ parent เป็นคนอัปเดตค่าจริง (โปรเจกต์นี้ใช้ Vuex/pathify แก้ปัญหานี้แบบเป็นระบบ จะเจอในบทที่ 04 และ 07)
+    </div>
+
+    <h2>5. Slot — ให้ parent "ยัด" เนื้อหาเข้าไปใน component ลูก</h2>
+    <pre><code>// Card.vue (child)
+&lt;template&gt;
+  &lt;div class="card"&gt;
+    &lt;slot&gt;&lt;/slot&gt;          &lt;!-- ใส่ default content ตรงนี้ --&gt;
+    &lt;slot name="footer"&gt;&lt;/slot&gt;  &lt;!-- named slot --&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+// ใช้งาน
+&lt;Card&gt;
+  &lt;p&gt;เนื้อหาหลัก&lt;/p&gt;
+  &lt;template #footer&gt;
+    &lt;button&gt;ปิด&lt;/button&gt;
+  &lt;/template&gt;
+&lt;/Card&gt;</code></pre>
+    <p>
+      โปรเจกต์นี้ใช้ named slot เยอะมากในตัว shared component เช่น <code>GridProxy</code> มี
+      <code>slot name="btnOptionR"</code> และ <code>slot name="footerToolbar"</code> ให้แต่ละหน้าจอใส่ปุ่มพิเศษของตัวเองเข้าไปได้ (ดูบทที่ 08)
+    </p>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li>Vue 2 Options API: component เป็น object ที่มี <code>data / computed / methods / watch / props</code></li>
+      <li><code>{{ }}</code> แสดงค่า, <code>:</code> ผูก attribute, <code>@</code> ดัก event, <code>v-model</code> ผูก 2 ทาง</li>
+      <li><code>v-if</code> ถอด/สร้าง DOM จริง ๆ, <code>v-show</code> แค่ซ่อนด้วย CSS</li>
+      <li><code>v-for</code> ต้องมี <code>:key</code> เสมอ</li>
+      <li>ข้อมูลไหลลงด้วย <strong>props</strong> ไหลขึ้นด้วย <strong>$emit</strong> ห้ามสวนทาง</li>
+    </ul>
+
+    <div class="pager">
+      <a href="../index.html"><span class="dir">← กลับ</span>หน้าแรก</a>
+      <a href="02-lifecycle.html"><span class="dir">ถัดไป →</span>02. Lifecycle ของ Vue</a>
+    </div>
+  </main>
+</div>
+
+<script>
+new Vue({
+  el: "#demo-instance",
+  data() { return { message: "สวัสดี Vue" }; }
+});
+
+new Vue({
+  el: "#demo-directives",
+  data() {
+    return {
+      showList: true,
+      newItem: "",
+      items: [
+        { id: 1, text: "อ่านบทเรียน Vue", done: false },
+        { id: 2, text: "ลองแก้โค้ดในหน้านี้", done: false }
+      ]
+    };
+  },
+  methods: {
+    addItem() {
+      if (!this.newItem.trim()) return;
+      this.items.push({ id: Date.now(), text: this.newItem, done: false });
+      this.newItem = "";
+    }
+  }
+});
+
+new Vue({
+  el: "#demo-computed",
+  data() {
+    return { price: 100, qty: 2, lastChangeLog: "(ยังไม่มีการเปลี่ยนแปลง)" };
+  },
+  computed: {
+    total() { return this.price * this.qty; }
+  },
+  watch: {
+    qty(newVal, oldVal) {
+      this.lastChangeLog = `qty เปลี่ยนจาก ${oldVal} เป็น ${newVal}`;
+    },
+    price(newVal, oldVal) {
+      this.lastChangeLog = `price เปลี่ยนจาก ${oldVal} เป็น ${newVal}`;
+    }
+  }
+});
+</script>
+<style>
+  #demo-directives .done { text-decoration: line-through; color: var(--text-dim); }
+  #demo-directives ul { padding-left: 0; list-style: none; }
+  #demo-directives li { display:flex; align-items:center; gap:10px; padding: 4px 0; }
+</style>
+</body>
+</html>

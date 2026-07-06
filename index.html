@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Vue &amp; Vuex — สำหรับทีม KL.Core.UI</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="index.html" class="active"><span class="num">•</span> หน้าแรก</a>
+      <a href="lessons/glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="lessons/01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="lessons/02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="lessons/03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="lessons/04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="lessons/05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="lessons/06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="lessons/07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="lessons/08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="lessons/09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="lessons/10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">Onboarding Curriculum</div>
+    <h1>เรียน Vue.js + Vuex + Kendo UI เพื่อทำงานกับ KL.Core.UI</h1>
+    <p class="lead">
+      บทเรียนชุดนี้ทำขึ้นสำหรับคนที่ <strong>ไม่เคยเขียน Vue.js / Vuex / Kendo UI มาก่อนเลย</strong>
+      โดยจะเริ่มจากพื้นฐานล้วน ๆ (ที่ใช้ได้กับโปรเจกต์ Vue ทั่วไปในโลก ไม่ใช่แค่โปรเจกต์นี้)
+      แล้วค่อย ๆ โยงเข้าสู่วิธีที่โปรเจกต์ <code>KL.Core.UI</code> (Faco Core) เลือกใช้งานจริง
+      รวมถึงพาไปรู้จัก Shared Component และ Router/Store ที่ทีมสร้างไว้ให้แล้ว จะได้ไม่ต้องเขียนซ้ำ
+    </p>
+
+    <div class="callout project">
+      <div class="callout-title">Stack ที่โปรเจกต์นี้ใช้จริง (สรุปสั้น ๆ)</div>
+      <ul style="margin-bottom:0;">
+        <li><strong>Vue 2.7.14</strong> (Options API) — ไม่ใช่ Vue 3</li>
+        <li><strong>Vuex 3.1.1</strong> ร่วมกับ <strong>vuex-pathify</strong> (helper ที่ทำให้เขียน state สั้นลง)</li>
+        <li><strong>Vue Router 3</strong> (history mode) — และ route ถูก "auto สร้าง" จากโครงสร้างโฟลเดอร์ views เอง</li>
+        <li><strong>Kendo UI for Vue</strong> (@progress/kendo-vue-*, kendo-*-vue-wrapper) เป็น UI component หลัก (Grid, DropDown, DatePicker, Window, TreeView ฯลฯ)</li>
+        <li><strong>Bootstrap-Vue</strong> สำหรับ layout พื้นฐาน (b-row, b-col, b-container)</li>
+        <li><strong>Vuelidate</strong> สำหรับ validate ฟอร์ม, <strong>vue-i18n</strong> สำหรับหลายภาษา (TH/EN), <strong>axios</strong> สำหรับเรียก API, <strong>SignalR</strong> สำหรับ real-time</li>
+        <li>Build ด้วย <strong>Webpack</strong> (ไม่ใช่ Vite) แบ่งเป็นหลาย module (Finance, Collection, Legal, HPAdmin ฯลฯ) ที่ build แยกกันได้ผ่าน <code>SCOPE_MODULE</code></li>
+      </ul>
+    </div>
+
+    <h2>วิธีเรียน</h2>
+    <p>ไล่เรียงตามลำดับ 01 → 09 ตาม sidebar ด้านซ้าย แต่ละหน้าเปิดจบในตัวเอง มีตัวอย่างโค้ดที่รันได้จริง
+    และในบทที่ 06-09 จะอ้างอิงไฟล์จริงในโปรเจกต์ (พร้อม path) ให้เปิดเทียบดูได้เลย</p>
+
+    <div class="grid-cards">
+      <a class="card" href="lessons/01-vue-basics.html">
+        <div class="card-num">01 · พื้นฐาน</div>
+        <h4>Vue.js พื้นฐาน</h4>
+        <p>Vue instance, template syntax, directives, data/computed/methods, component, props/events</p>
+      </a>
+      <a class="card" href="lessons/02-lifecycle.html">
+        <div class="card-num">02 · พื้นฐาน</div>
+        <h4>Lifecycle ของ Vue</h4>
+        <p>created, mounted, updated, destroyed — และเวลาที่ควรใช้แต่ละ hook</p>
+      </a>
+      <a class="card" href="lessons/03-router.html">
+        <div class="card-num">03 · พื้นฐาน</div>
+        <h4>Vue Router</h4>
+        <p>route, router-view, router-link, navigation guard, params/query, lazy load</p>
+      </a>
+      <a class="card" href="lessons/04-vuex.html">
+        <div class="card-num">04 · พื้นฐาน</div>
+        <h4>Vuex (State Management)</h4>
+        <p>state, getters, mutations, actions, modules, namespaced, mapState/mapActions</p>
+      </a>
+      <a class="card" href="lessons/05-kendo-ui.html">
+        <div class="card-num">05 · พื้นฐาน</div>
+        <h4>Kendo UI for Vue</h4>
+        <p>Grid, DropDown, DatePicker, Window/Dialog, TreeView, Upload — ที่ใช้บ่อยในโปรเจกต์</p>
+      </a>
+      <a class="card" href="lessons/06-project-overview.html">
+        <div class="card-num">06 · โปรเจกต์</div>
+        <h4>ภาพรวมสถาปัตยกรรม KL.Core.UI</h4>
+        <p>main.js, CreateVueInstance.js, multi-instance (vmMaster), global mixin, config</p>
+      </a>
+      <a class="card" href="lessons/07-project-router-store.html">
+        <div class="card-num">07 · โปรเจกต์</div>
+        <h4>Router &amp; Vuex ของโปรเจกต์นี้</h4>
+        <p>route/store ที่ auto-register จากโฟลเดอร์ views, ชื่อ module, sync/get/set ของ pathify</p>
+      </a>
+      <a class="card" href="lessons/08-shared-components.html">
+        <div class="card-num">08 · โปรเจกต์</div>
+        <h4>Shared Components ที่มีอยู่แล้ว</h4>
+        <p>MasterLayout, GridProxy/GridDisplay, BaseWindow, MainActionToolbar, FormGroup</p>
+      </a>
+      <a class="card" href="lessons/09-hands-on.html">
+        <div class="card-num">09 · โปรเจกต์</div>
+        <h4>ลงมือทำจริง</h4>
+        <p>Checklist ทีละขั้นตอนสำหรับสร้างหน้าจอใหม่ 1 หน้าในโปรเจกต์นี้</p>
+      </a>
+      <a class="card" href="lessons/10-shared-reference.html">
+        <div class="card-num">10 · โปรเจกต์</div>
+        <h4>Shared Component / Store / Utility ทั้งหมด</h4>
+        <p>Reference ครบทุกตัวที่ทีมสร้างไว้ตรงกลาง — component, store module, และ $utils ทุกฟังก์ชัน</p>
+      </a>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-title">Tip</div>
+      เปิดไฟล์นี้ผ่าน browser ตรง ๆ ได้เลย (double-click <code>index.html</code>) ไม่ต้องมี server หรือ build ใด ๆ ทั้งสิ้น
+    </div>
+  </main>
+</div>
+</body>
+</html>

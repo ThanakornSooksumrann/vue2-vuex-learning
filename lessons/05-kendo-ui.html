@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05 · Kendo UI for Vue — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html" class="active"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 1 · พื้นฐาน 05/05</div>
+    <h1>Kendo UI for Vue</h1>
+    <p class="lead">
+      Kendo UI คือชุด UI component สำเร็จรูป (ของบริษัท Progress/Telerik ต้องมี license) ที่ให้ Grid, DropDown, DatePicker, Window (dialog), TreeView
+      ที่ครบเครื่องกว่า HTML ธรรมดามาก — โปรเจกต์นี้ใช้ Kendo UI เป็น <strong>UI component หลัก</strong>เกือบทั้งระบบ
+      (ไม่มี live demo ในหน้านี้เพราะ Kendo ต้องใช้ license/CSS ของจริง แต่โค้ดตัวอย่างทั้งหมดคัดมาจากไฟล์จริงในโปรเจกต์)
+    </p>
+
+    <div class="callout warn">
+      <div class="callout-title">มี 2 เจนเนอเรชันปนกันอยู่ในโปรเจกต์นี้ — อย่าสับสน</div>
+      <ol style="margin-bottom:0;">
+        <li><strong>Kendo UI ตัวเก่า (jQuery-based) + Vue Wrapper</strong> — package ชื่อ <code>@progress/kendo-*-vue-wrapper</code> (เวอร์ชัน 2020.1.x)
+        ใช้ tag แบบ <code>&lt;kendo-grid&gt;</code>, <code>&lt;kendo-combobox&gt;</code>, <code>&lt;kendo-datepicker&gt;</code> ฯลฯ — เป็นของหลักที่ใช้ 90% ของโปรเจกต์</li>
+        <li><strong>Kendo UI for Vue ตัวใหม่ (native Vue component)</strong> — package ชื่อ <code>@progress/kendo-vue-*</code> (เวอร์ชัน 1.0.3)
+        ใช้แบบ import component ตรง ๆ เช่น <code>import { Grid } from '@progress/kendo-vue-grid'</code> ถูก register เป็น global component ชื่อ <code>&lt;grid&gt;</code> ใน <code>CreateVueInstance.js</code></li>
+      </ol>
+    </div>
+
+    <h2>1. การติดตั้ง/เปิดใช้งานระดับแอป (ทำไว้แล้ว ไม่ต้องทำซ้ำ)</h2>
+    <p>ทุก component Kendo ถูก register เป็น global component ให้แล้วที่ <code>src/CreateVueInstance.js</code> — เวลาสร้างหน้าจอใหม่ <strong>ใช้ tag ได้เลยโดยไม่ต้อง import</strong></p>
+    <pre><code>// src/CreateVueInstance.js (โค้ดจริงของโปรเจกต์ — ทำไว้ให้แล้ว)
+import '@progress/kendo-ui';
+import { GridInstaller } from '@progress/kendo-grid-vue-wrapper'
+import { DateinputsInstaller } from '@progress/kendo-dateinputs-vue-wrapper'
+import { DropdownsInstaller } from '@progress/kendo-dropdowns-vue-wrapper';
+import { InputsInstaller } from '@progress/kendo-inputs-vue-wrapper'
+import { ButtonsInstaller } from '@progress/kendo-buttons-vue-wrapper'
+import { KendoPopupsInstaller } from '@progress/kendo-popups-vue-wrapper'
+import { TreeViewInstaller } from '@progress/kendo-treeview-vue-wrapper'
+import { UploadInstaller } from '@progress/kendo-upload-vue-wrapper'
+// ...ฯลฯ
+
+Vue.use(DateinputsInstaller)
+Vue.use(InputsInstaller)
+Vue.use(ButtonsInstaller)
+Vue.use(GridInstaller)
+Vue.use(KendoPopupsInstaller)
+Vue.use(DropdownsInstaller)
+Vue.use(TreeViewInstaller)
+Vue.use(UploadInstaller)
+// ทำให้ &lt;kendo-datepicker&gt;, &lt;kendo-combobox&gt;, &lt;kendo-grid&gt; ฯลฯ ใช้ได้ทุกไฟล์ .vue ทันที</code></pre>
+
+    <h2>2. Component ที่ใช้บ่อยที่สุดในโปรเจกต์นี้</h2>
+
+    <h3>kendo-combobox / kendo-dropdownlist — dropdown เลือกค่า</h3>
+    <pre><code>&lt;kendo-combobox
+  :data-source="[
+    { code: '001', desc: 'ยี่ห้อ A' },
+    { code: '002', desc: 'ยี่ห้อ B' }
+  ]"
+  :data-text-field="'desc'"    &lt;!-- field ที่จะโชว์ให้ user เห็น --&gt;
+  :data-value-field="'code'"   &lt;!-- field ที่จะเป็นค่าจริงตอนเลือก --&gt;
+  :placeholder="'เลือกยี่ห้อ'"
+&gt;&lt;/kendo-combobox&gt;</code></pre>
+
+    <h3>kendo-numerictextbox — กรอกตัวเลข</h3>
+    <pre><code>&lt;kendo-numerictextbox
+  :max="100"
+  :decimals="6"
+  :format="'n6'"
+  :spinners="true"
+  :step="0.00001"
+  @change="onChange"
+&gt;&lt;/kendo-numerictextbox&gt;</code></pre>
+
+    <h3>kendo-datepicker — เลือกวันที่</h3>
+    <pre><code>&lt;kendo-datepicker
+  v-model="birthDate"
+  :format="'dd/MM/yyyy'"
+  :min="minDate"
+  :max="maxDate"
+  @change="onChange"
+&gt;&lt;/kendo-datepicker&gt;</code></pre>
+
+    <h3>kendo-window — dialog/popup (โปรเจกต์ครอบไว้เป็น &lt;kendo-window&gt; อีกที)</h3>
+    <p>
+      โปรเจกต์นี้ไม่ได้ใช้ <code>Window</code> จาก Kendo ตรง ๆ แต่ครอบด้วย shared component ชื่อ
+      <code>BaseWindow.vue</code> แล้ว register เป็น global component ชื่อ <code>&lt;kendo-window&gt;</code> (ดูบทที่ 08)
+    </p>
+    <pre><code>&lt;kendo-window ref="myWindow" :title="'ยืนยันการทำรายการ'" :width="400" :modal="true"&gt;
+  &lt;p&gt;คุณต้องการบันทึกข้อมูลใช่หรือไม่?&lt;/p&gt;
+  &lt;button @click="onConfirm"&gt;ยืนยัน&lt;/button&gt;
+&lt;/kendo-window&gt;
+
+&lt;script&gt;
+methods: {
+  openDialog() {
+    this.$refs.myWindow.kendoWidget().center().open(); // เรียก Kendo widget API ตรง ๆ ผ่าน .kendoWidget()
+  }
+}
+&lt;/script&gt;</code></pre>
+
+    <h3>kendo-treeview — เมนู/โครงสร้างต้นไม้</h3>
+    <p>ใช้เป็นเมนู sidebar หลักของทั้งระบบ (ดู <code>MasterLayout.vue</code> บทที่ 08)</p>
+    <pre><code>&lt;kendo-treeview
+  :data-source="navDataSource"
+  :template="'&lt;span class=\'#= item.iconCls #\'&gt;&lt;/span&gt;&lt;span&gt;#= item.title #&lt;/span&gt;'"
+  :data-text-field="['name']"
+  @select="onSelectMenu"
+&gt;&lt;/kendo-treeview&gt;</code></pre>
+
+    <h3>kendo-toolbar / kendo-toolbar-item — แถบปุ่มด้านบนของหน้าจอ</h3>
+    <p>โปรเจกต์นี้ครอบไว้เป็น shared component <code>MainActionToolbar</code> อีกชั้น (ดูบทที่ 08) แต่ข้างในใช้ตัวนี้</p>
+    <pre><code>&lt;kendo-toolbar&gt;
+  &lt;kendo-toolbar-item type="button" icon="save" text="บันทึก" @click="onSave"&gt;&lt;/kendo-toolbar-item&gt;
+  &lt;kendo-toolbar-item type="button" icon="reset" text="เคลียร์" @click="onReset"&gt;&lt;/kendo-toolbar-item&gt;
+&lt;/kendo-toolbar&gt;</code></pre>
+
+    <h2>3. Grid + DataSource — คู่หูที่ใช้เยอะที่สุดในระบบ</h2>
+    <p>
+      Kendo Grid แบบเก่าต้องคู่กับ <code>kendo-datasource</code> เพื่อจัดการ paging/filter/sort แบบฝั่ง server
+      (โปรเจกต์นี้ครอบ pattern นี้ไว้เป็น shared component <code>GridProxy.vue</code> แล้ว — ปกติไม่ต้องเขียนเองตั้งแต่ศูนย์ ดูบทที่ 08)
+    </p>
+    <pre><code>&lt;kendo-datasource
+  ref="ds"
+  :transport="{
+    read: { url: '/api/customer/search' }
+  }"
+  :schema-data="'content'"      &lt;!-- key ใน response ที่เป็น array ข้อมูลจริง --&gt;
+  :schema-total="'total'"       &lt;!-- key ใน response ที่บอกจำนวนทั้งหมด (สำหรับ paging) --&gt;
+  :server-filtering="true"
+  :server-paging="true"
+  :server-sorting="true"
+  :page-size="10"
+&gt;&lt;/kendo-datasource&gt;
+
+&lt;kendo-grid
+  :data-source="ds"
+  :columns="[
+    { field: 'code', title: 'รหัส' },
+    { field: 'name', title: 'ชื่อ' }
+  ]"
+  :sortable="true"
+  :pageable="true"
+&gt;&lt;/kendo-grid&gt;</code></pre>
+
+    <div class="callout project">
+      <div class="callout-title">ทางลัด: ใช้ GridProxy แทนการเขียน Grid+DataSource เอง</div>
+      แทบทุกหน้าจอในโปรเจกต์นี้ที่ต้องการตารางข้อมูลแบบแบ่งหน้า จะ import <code>GridProxy</code> จาก
+      <code>faco.core@shared/Controls/Grid/GridProxy</code> แล้วส่ง <code>columns</code>, <code>url</code> เข้าไปแทน — ไม่ต้องประกอบ datasource+grid เอง
+      (ดูตัวอย่างเต็ม ๆ ในบทที่ 08)
+    </div>
+
+    <h2>4. kendo-upload — อัปโหลดไฟล์</h2>
+    <pre><code>&lt;kendo-upload
+  :async="{ saveUrl: uploadUrl, removeUrl: removeUrl, autoUpload: true }"
+  @success="onSuccessUploadFile"
+  @error="onErrorUploadFile"
+  @remove="onRemoveFile"
+&gt;&lt;/kendo-upload&gt;</code></pre>
+    <p>
+      โปรเจกต์นี้มี global mixin method ชื่อ <code>_onSuccessUploadFile</code>, <code>_onErrorUploadFile</code>, <code>_onRemoveFile</code>
+      ให้ใช้ได้ทุก component อยู่แล้ว (ประกาศไว้ใน <code>CreateVueInstance.js</code>) — ไม่ต้องเขียน handler อัปโหลดไฟล์เองใหม่ทุกครั้ง
+    </p>
+
+    <h2>5. เข้าถึง Kendo widget object ตรง ๆ เมื่อ component API ไม่พอ</h2>
+    <p>บาง widget ต้องเรียก method พิเศษที่ไม่มีใน props/events ของ Vue wrapper ให้ใช้ <code>this.$refs.xxx.kendoWidget()</code></p>
+    <pre><code>this.$refs.myGrid.kendoWidget().dataSource.read();   // สั่ง refresh grid
+this.$refs.myDate.kendoWidget().value(new Date());   // set ค่าตรง ๆ ผ่าน Kendo API</code></pre>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li>Kendo component ถูก register เป็น global แล้วทั้งหมด ใช้ <code>&lt;kendo-xxx&gt;</code> ได้เลยไม่ต้อง import</li>
+      <li>มี 2 เจนเนอเรชันปนกัน: <code>kendo-*-vue-wrapper</code> (เก่า ใช้เยอะสุด) กับ <code>@progress/kendo-vue-*</code> (ใหม่)</li>
+      <li>Grid ต้องคู่กับ DataSource เสมอสำหรับข้อมูลแบบแบ่งหน้า — แต่ในทางปฏิบัติให้ใช้ <code>GridProxy</code> ที่ทีมทำไว้แทน</li>
+      <li>เข้าถึง Kendo widget API ตรง ๆ ผ่าน <code>this.$refs.xxx.kendoWidget()</code> เมื่อ Vue props/events ไม่พอ</li>
+    </ul>
+
+    <hr class="sep">
+    <div class="callout tip">
+      <div class="callout-title">จบส่วนที่ 1 แล้ว — ต่อไปคือการเชื่อมกับโปรเจกต์จริง</div>
+      ตอนนี้มีพื้นฐาน Vue / Lifecycle / Router / Vuex / Kendo ครบแล้ว บทถัดไปจะพาไปดูว่าโปรเจกต์ KL.Core.UI
+      เอาพื้นฐานเหล่านี้ไปประกอบร่างกันยังไงจริง ๆ เริ่มจากภาพรวมสถาปัตยกรรมก่อน
+    </div>
+
+    <div class="pager">
+      <a href="04-vuex.html"><span class="dir">← ก่อนหน้า</span>04. Vuex (State Management)</a>
+      <a href="06-project-overview.html"><span class="dir">ถัดไป →</span>06. ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

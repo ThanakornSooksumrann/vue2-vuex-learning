@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>07 · Router &amp; Vuex ของโปรเจกต์ — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html" class="active"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 2 · โปรเจกต์ KL.Core.UI 07/10</div>
+    <h1>Router &amp; Vuex ของโปรเจกต์นี้ (ตัวจริงที่ทีมทำไว้แล้ว)</h1>
+    <p class="lead">
+      นี่คือบทที่สำคัญที่สุดในการ "เริ่มงานได้จริง" เพราะโปรเจกต์นี้<strong>ไม่ได้เขียน route หรือ vuex module มือ</strong>ทีละไฟล์
+      แต่ใช้ Webpack <code>require.context</code> สแกนโฟลเดอร์แล้วสร้างให้อัตโนมัติ — ถ้าไม่รู้กลไกนี้จะงงมากว่า "ทำไมหน้าจอนี้เข้าได้เองทั้งที่ไม่เห็นใครไปเพิ่ม route ที่ไหนเลย"
+    </p>
+
+    <h2>1. Router auto-generation — route มาจากชื่อไฟล์ .vue ในโฟลเดอร์ views</h2>
+    <p>ไฟล์จริง: <code>src/app/router/index.js</code></p>
+    <pre><code>let routes = [];
+
+let importRouterScreens = (req) => {
+  let keys = req.keys();
+  keys.forEach(function (key) {
+    let match = key.match(/([^\/]+)(?=\.\w+$)/) || [];
+    if (match.length > 0) {
+      let name = match[0];
+      let fileName = key.split("/").pop();
+      let path = `${key.replace("./","/").replace(fileName,name)}`;
+
+      routes.push({
+        path: key.replace("./","/").replace(fileName,name),
+        component: () => import("../views" + path),   // lazy-load อัตโนมัติ
+        props: route => ({
+          mode: route.query.mode,
+          modeFlag: route.query.modeFlag,
+          modePage: route.query.modePage
+        })
+      });
+    }
+  });
+};
+
+// สแกนทุกไฟล์ .vue ใต้ src/app/views/ แบบ recursive
+importRouterScreens(require.context("../views", true, /^(?=.*.vue$)/, 'weak'));</code></pre>
+
+    <div class="callout project">
+      <div class="callout-title">แปลว่าอะไร: กฎทองของโปรเจกต์นี้</div>
+      <strong>ตำแหน่งไฟล์ .vue ใน <code>src/app/views/</code> = path ของ route โดยอัตโนมัติ</strong> ไม่ต้องไปเพิ่มไฟล์ router เอง<br><br>
+      ตัวอย่าง: ไฟล์ <code>src/app/views/Finance/InquiryCashReceiptUnknownContract/Index.vue</code>
+      จะกลายเป็น route path <code>/Finance/InquiryCashReceiptUnknownContract/Index</code> โดยอัตโนมัติทันทีที่สร้างไฟล์นี้ขึ้นมา
+    </div>
+
+    <p>ทุก route ที่สร้างแบบนี้จะได้ <strong>props อัตโนมัติ 3 ตัว</strong> จาก query string เสมอ:</p>
+    <table>
+      <thead><tr><th>Prop</th><th>มาจาก query</th><th>ใช้ทำอะไรทั่วไป</th></tr></thead>
+      <tbody>
+        <tr><td><code>mode</code></td><td><code>?mode=Inquiry</code></td><td>บอกว่าหน้านี้เปิดมาแบบไหน เช่น <code>Inquiry</code> (ดูอย่างเดียว), <code>Edit</code>, <code>Approve</code></td></tr>
+        <tr><td><code>modeFlag</code></td><td><code>?modeFlag=1</code></td><td>flag เพิ่มเติมแยกย่อยพฤติกรรมภายใน mode เดียวกัน</td></tr>
+        <tr><td><code>modePage</code></td><td><code>?modePage=xxx</code></td><td>บอกบริบทของหน้าที่เปิดมา (เช่นเปิดจากเมนูไหน)</td></tr>
+      </tbody>
+    </table>
+    <pre><code>// ในหน้าจอ (Index.vue) รับค่าผ่าน props ได้เลย ไม่ต้องอ่าน $route.query เอง
+export default {
+  props: {
+    mode: { type: String, default() { return ""; } }
+  },
+  computed: {
+    isInquiryMode() { return this.mode === 'Inquiry'; }
+  }
+};</code></pre>
+
+    <h2>2. Router Guard ของโปรเจกต์ (ของจริง)</h2>
+    <pre><code>// beforeEach: ปิด SignalR hub บางประเภทก่อนเปลี่ยนหน้า (กันหลุด/ค้าง)
+router.beforeEach((to, from, next) => {
+  const vm = (router.app || {}).$root;
+  const hubConnections = vm._getHubConnections();
+  const promises = hubConnections
+    .filter(hub => hub.hubType === 1)
+    .map(hub => hub.dispose());
+  Promise.all(promises).then(() => next());
+});
+
+// afterEach: เคลียร์ค่าตกค้าง + reset store เมื่อไปหน้า sign-in + อัปเดต title
+router.afterEach((to, from) => {
+  const path = to.path.toLowerCase();
+  if (path.indexOf("signin") > -1) {
+    store.resetAllModules();   // reset ทุก module ยกเว้น Layout_* กันข้อมูล user เก่าค้าง
+  } else {
+    store.set("Layout_Main/isSetTitle", false).then(() => {
+      app.setTitle();          // อัปเดตชื่อหัวข้อ/breadcrumb จาก MenuData ตาม path ปัจจุบัน
+    });
+  }
+});</code></pre>
+
+    <h2>3. Vuex module auto-registration — เหมือน router เป๊ะ ๆ</h2>
+    <p>ไฟล์จริง: <code>src/app/store/index.js</code></p>
+    <pre><code>let modules = {};
+let importKeys = (route, req) => {
+  req.keys().forEach((key) => {
+    // แปลง path ไฟล์ให้เป็นชื่อ module เช่น
+    // "./Layout/Stores/Main.js" -> "Layout_Main"
+    let moduleName = key
+      .replace("/Stores", "")
+      .replace(".js", "")
+      .replace(/\.\//gi, "")
+      .replace(/\//gi, "_");
+
+    modules[moduleName] = req(key).default;
+  });
+};
+
+// สแกนทุกไฟล์ .js ที่อยู่ใต้โฟลเดอร์ Stores/ ทั้งใน shared และ views
+importKeys("", require.context("faco.core@app/store/shared/", true, /\/Stores\/.*\.js/i));
+importKeys("", require.context("faco.core@app/store/views/", true, /\/Stores\/.*\.js/i));
+
+const store = new Vuex.Store({
+  modules,
+  plugins: [pathify.plugin]
+});</code></pre>
+
+    <div class="callout project">
+      <div class="callout-title">กฎทองข้อที่ 2: ชื่อ module = path ของไฟล์ store</div>
+      <table style="margin:10px 0 0;">
+        <thead><tr><th>ไฟล์ store จริง</th><th>ชื่อ module ที่ได้</th></tr></thead>
+        <tbody>
+          <tr><td><code>store/shared/Layout/Stores/Main.js</code></td><td><code>Layout_Main</code></td></tr>
+          <tr><td><code>store/shared/Layout/Stores/MasterLayout.js</code></td><td><code>Layout_MasterLayout</code></td></tr>
+          <tr><td><code>store/views/Demo/Stores/Demo2.js</code></td><td><code>Demo_Demo2</code></td></tr>
+          <tr><td><code>store/views/Finance/.../Stores/InquiryCashReceiptUnknownContractDetail.js</code></td><td><code>Finance_InquiryCashReceiptUnknownContract_InquiryCashReceiptUnknownContractDetail</code></td></tr>
+        </tbody>
+      </table>
+      <p style="margin:10px 0 0;">ดังนั้นเวลาสร้าง store module ใหม่ <strong>ต้องวางไฟล์ในตำแหน่งที่ถูกต้อง</strong> เพราะชื่อ module จะถูกคำนวณจาก path เสมอ ไม่ได้ตั้งชื่อเองอิสระ</p>
+    </div>
+
+    <h2>4. Store module pattern จริงของโปรเจกต์ (vuex-pathify <code>make</code>)</h2>
+    <p>ทุก module ใช้ <code>make.getters/mutations/actions</code> จาก vuex-pathify เพื่อ auto-generate getter/mutation/action ของทุก state property ให้ฟรี ไม่ต้องเขียนเอง</p>
+    <pre><code>// src/app/store/shared/Layout/Stores/Main.js (ของจริง)
+import { make } from 'vuex-pathify';
+import axios from "faco.core@repository";
+
+function state() {
+  return {
+    completedAuth: false,
+    isLoginPage: false,
+    tempFiles: []
+  };
+}
+
+const getters = {
+  ...make.getters(state)     // ได้ getter "completedAuth", "isLoginPage" ฯลฯ ให้ฟรี
+};
+
+const mutations = {
+  ...make.mutations(state),  // ได้ mutation "SET_COMPLETED_AUTH" ฯลฯ ให้ฟรี (ตั้งชื่อ SET_ ใหญ่ตัวพิมพ์)
+  clearTempFiles(state) {    // เขียน mutation เองเพิ่มได้ตามต้องการ
+    state.tempFiles.splice(0);
+  }
+};
+
+const actions = {
+  ...make.actions(state),    // ได้ action "completedAuth" ฯลฯ ให้ฟรี (เรียกผ่าน pathify "!" )
+  getSystemDate({ commit }) {
+    return new Promise(resolve => {
+      axios.systemConfigApi.get(`System/SystemDate`).then(response => {
+        commit("tempSysDate", response.data.content);
+        resolve(true);
+      }).catch(() => resolve(false));
+    });
+  }
+};
+
+export default { namespaced: true, state, getters, actions, mutations };</code></pre>
+
+    <h2>5. วิธีใช้ store จาก component ด้วย pathify (ของจริงที่เจอทุกไฟล์)</h2>
+    <pre><code>import { sync, get } from "vuex-pathify";
+
+var pathStore = {
+  detail: "Finance_InquiryCashReceiptUnknownContract_InquiryCashReceiptUnknownContractDetail"
+};
+
+export default {
+  computed: {
+    // sync ทุก property ของ module นี้ในทีเดียว — อ่าน/เขียนได้เหมือน data ปกติ
+    ...sync(`${pathStore.detail}/*`)
+    // ตอนนี้จะมี this.dataInGrid, this.columns ฯลฯ ให้ใช้ตรง ๆ ถ้า state module มี property เหล่านั้น
+  },
+  methods: {
+    onSearch() {
+      let filter = this.$refs.filterForm.onSearchFilter();
+
+      // เรียก action ต้องมี "!" ต่อท้ายชื่อเสมอ — บอก pathify ว่านี่คือ action ไม่ใช่ set ค่า state ตรง ๆ
+      this.$store.set(`${pathStore.detail}/getDataInquiryCashReceiptUnknownContract!`, filter)
+        .then((result) => {
+          if (this.dataInGrid.length < 1) {
+            this.$refs.alertMessage.open("คำเตือน", "ไม่พบข้อมูล", 400);
+          }
+        });
+    }
+  },
+  mounted() {
+    // ตั้งชื่อ title ของหน้าจอ ทุกหน้าทำแบบนี้เหมือนกันหมด
+    this.$store.set("Layout_MasterLayout/setTitle", {
+      titleName: this.$t("FF-LB-003859"),
+      subTitleName: `${this.$t('FF-LB-003846')} > ${this.$t('FF-LB-003668')}`
+    });
+  }
+};</code></pre>
+
+    <table>
+      <thead><tr><th>Syntax</th><th>ความหมาย</th></tr></thead>
+      <tbody>
+        <tr><td><code>...sync('Module/*')</code></td><td>ผูก state ทุกตัวใน module นั้นเป็น computed (get+set) อัตโนมัติ</td></tr>
+        <tr><td><code>...sync('Module/field')</code></td><td>ผูกเฉพาะ field เดียว</td></tr>
+        <tr><td><code>this.$store.get('Module/field')</code></td><td>อ่านค่า state แบบ manual (ไม่ผูก reactive computed)</td></tr>
+        <tr><td><code>this.$store.set('Module/field', value)</code></td><td>set state ตรง ๆ (เรียก mutation ที่ auto-gen ให้)</td></tr>
+        <tr><td><code>this.$store.set('Module/actionName!', payload)</code></td><td>เครื่องหมาย <code>!</code> ต่อท้าย = เรียก action (รองรับ async, return Promise)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. Reset store อัตโนมัติ + register module แบบ dynamic</h2>
+    <pre><code>// ทุก module ยกเว้น Layout_* จะถูกล้างกลับเป็นค่าเริ่มต้นตอน logout/เปลี่ยนไปหน้า sign-in
+store.resetAllModules();
+
+// เพิ่ม module เข้า store ตอน runtime (ใช้ตอนโหลดโมดูลย่อยแบบ dynamic)
+store.externalRegister("SomeModuleName", moduleDefinition);</code></pre>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li>สร้างไฟล์ <code>.vue</code> ใต้ <code>src/app/views/...</code> → ได้ route ให้อัตโนมัติ (path = ตำแหน่งไฟล์)</li>
+      <li>ทุก route ได้ props <code>mode</code>, <code>modeFlag</code>, <code>modePage</code> จาก query string ให้ฟรี</li>
+      <li>สร้างไฟล์ store ใต้ <code>store/shared/.../Stores/</code> หรือ <code>store/views/.../Stores/</code> → ได้ Vuex module ให้อัตโนมัติ ชื่อ module มาจาก path</li>
+      <li>ใช้ <code>make.getters/mutations/actions</code> เพื่อไม่ต้องเขียน getter/mutation พื้นฐานเอง</li>
+      <li>ใช้ <code>sync()</code>, <code>$store.get()</code>, <code>$store.set()</code> เสมอแทน <code>mapState/mapActions</code> แบบมาตรฐาน และอย่าลืม <code>!</code> ต่อท้ายเวลาเรียก action</li>
+    </ul>
+
+    <div class="pager">
+      <a href="06-project-overview.html"><span class="dir">← ก่อนหน้า</span>06. ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="dir">ถัดไป →</span>08. Shared Components / Layout</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

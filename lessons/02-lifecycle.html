@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 · Lifecycle ของ Vue — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html" class="active"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 1 · พื้นฐาน 02/05</div>
+    <h1>Lifecycle ของ Vue Component</h1>
+    <p class="lead">
+      Component ทุกตัวมี "ช่วงชีวิต" ตั้งแต่เกิดจนตาย Vue จะเรียก method พิเศษ (lifecycle hook) ให้เราแทรกโค้ดเข้าไปในแต่ละช่วงได้
+      เรื่องนี้สำคัญมากเพราะโปรเจกต์นี้ใช้ <code>mounted</code> และ <code>beforeMount</code> เกือบทุกหน้าจอ เพื่อโหลดข้อมูลตั้งต้นและตั้งชื่อ title ของหน้า
+    </p>
+
+    <h2>1. ลำดับ Lifecycle Hook ทั้งหมด (Vue 2)</h2>
+    <div class="lifecycle-diagram">
+      <div class="lc-row">
+        <div class="lc-box phase-create">
+          <div class="lc-hook">beforeCreate</div>
+          <div class="lc-desc">ยังไม่มี data/methods ให้ใช้เลย (เกิดก่อน reactivity ถูกตั้งค่า)</div>
+        </div>
+      </div>
+      <div class="lc-arrow">↓</div>
+      <div class="lc-row">
+        <div class="lc-box phase-create">
+          <div class="lc-hook">created</div>
+          <div class="lc-desc">มี data / computed / methods ให้ใช้แล้ว แต่ <strong>ยังไม่มี DOM</strong> (this.$el ยังไม่มี) — เหมาะกับเรียก API เพื่อโหลดข้อมูลตั้งต้น</div>
+        </div>
+      </div>
+      <div class="lc-arrow">↓</div>
+      <div class="lc-row">
+        <div class="lc-box phase-mount">
+          <div class="lc-hook">beforeMount</div>
+          <div class="lc-desc">เตรียม render ครั้งแรก DOM ยังไม่ถูกแปะเข้าหน้าเว็บจริง</div>
+        </div>
+      </div>
+      <div class="lc-arrow">↓</div>
+      <div class="lc-row">
+        <div class="lc-box phase-mount">
+          <div class="lc-hook">mounted</div>
+          <div class="lc-desc"><strong>DOM พร้อมใช้งานแล้ว</strong> (this.$el / this.$refs ใช้ได้) — เหมาะกับสั่งงาน jQuery/Kendo widget, วัดขนาด element, โฟกัส input</div>
+        </div>
+      </div>
+      <div class="lc-arrow">↓ (วนซ้ำทุกครั้งที่ data เปลี่ยน)</div>
+      <div class="lc-row">
+        <div class="lc-box phase-update">
+          <div class="lc-hook">beforeUpdate</div>
+          <div class="lc-desc">data เปลี่ยนแล้ว แต่ DOM ยัง "เก่า" อยู่</div>
+        </div>
+        <div class="lc-box phase-update">
+          <div class="lc-hook">updated</div>
+          <div class="lc-desc">DOM re-render เสร็จแล้วตาม data ใหม่</div>
+        </div>
+      </div>
+      <div class="lc-arrow">↓ (เมื่อ component ถูกถอดออกจากหน้าจอ)</div>
+      <div class="lc-row">
+        <div class="lc-box phase-destroy">
+          <div class="lc-hook">beforeDestroy</div>
+          <div class="lc-desc">component ใกล้ตาย — <strong>จุดสำคัญ</strong>สำหรับ cleanup: clearInterval, ปิด event listener, disconnect SignalR</div>
+        </div>
+        <div class="lc-box phase-destroy">
+          <div class="lc-hook">destroyed</div>
+          <div class="lc-desc">component ตายสมบูรณ์แล้ว ไม่มีอะไรให้ทำต่อ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-title">Vue 3 ใช้ชื่อไม่เหมือนกัน (เผื่อไปเจอบทความ Vue 3 บนอินเทอร์เน็ต)</div>
+      Vue 3 เปลี่ยนชื่อ <code>beforeDestroy → beforeUnmount</code> และ <code>destroyed → unmounted</code>
+      แต่โปรเจกต์นี้เป็น <strong>Vue 2</strong> ให้ใช้ชื่อ <code>beforeDestroy</code> / <code>destroyed</code> เท่านั้น
+    </div>
+
+    <h2>2. ทดลองดูจริง — mount/unmount component แล้วดู log</h2>
+    <p>กดปุ่มด้านล่างเพื่อสร้าง/ทำลาย component แล้วสังเกต log ทางขวาว่า hook ไหนทำงานตอนไหน</p>
+    <div class="playground">
+      <div class="pg-label">ตัวอย่างสด <span class="live">● LIVE</span></div>
+      <div class="pg-body">
+        <div id="demo-lifecycle">
+          <button class="primary" @click="mounted = !mounted">{{ mounted ? 'ทำลาย (destroy) component' : 'สร้าง (mount) component' }}</button>
+          <button @click="tick++" :disabled="!mounted" style="margin-left:8px;">แก้ไข data (จะเห็น update hook)</button>
+          <button @click="log = []" style="margin-left:8px;">ล้าง log</span></button>
+          <div style="display:flex; gap:16px; margin-top:14px;">
+            <div style="flex:1;">
+              <child-demo v-if="mounted" :tick="tick" @hook-log="onHookLog"></child-demo>
+              <p v-else style="color:var(--text-dim)">(component ถูกทำลายไปแล้ว — ไม่มีอะไรแสดง)</p>
+            </div>
+            <div style="flex:1; background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; max-height:220px; overflow:auto;">
+              <div v-for="(l, i) in log" :key="i" style="font-family:monospace; font-size:0.85rem; color:#d8dee9;">{{ l }}</div>
+              <div v-if="log.length === 0" style="color:var(--text-dim); font-size:0.85rem;">ยังไม่มี log</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2>3. Hook ไหนควรใช้ทำอะไร (เทียบกับที่โปรเจกต์นี้ทำจริง)</h2>
+    <table>
+      <thead><tr><th>Hook</th><th>ใช้ทำอะไรดี</th><th>ตัวอย่างในโปรเจกต์นี้</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>created</code></td>
+          <td>เตรียมค่าตัวแปรที่ไม่ต้องพึ่ง DOM, เรียก action เพื่อดึงข้อมูล dropdown</td>
+          <td><code>src/app/shared/Layout/MasterLayout.vue</code> ใช้ <code>created()</code> โหลด <code>MenuData</code> เข้า sidebar</td>
+        </tr>
+        <tr>
+          <td><code>beforeMount</code></td>
+          <td>เช็คเงื่อนไขก่อน render ครั้งแรก เช่นเช็ค URL ว่าเป็นหน้า login หรือไม่</td>
+          <td><code>src/App.vue</code> เช็ค URL ว่าใช่ <code>/SignIn</code> หรือ <code>/AutoSignIn</code> หรือเปล่า ก่อนจะ mount</td>
+        </tr>
+        <tr>
+          <td><code>mounted</code></td>
+          <td>โหลดข้อมูลเริ่มต้นของหน้าจอ, ตั้งชื่อ title, ผูก resize/interval, สั่งงาน widget</td>
+          <td>แทบทุกหน้าจอ (view) เรียก <code>this.$store.set("Layout_MasterLayout/setTitle", {...})</code> ใน <code>mounted()</code></td>
+        </tr>
+        <tr>
+          <td><code>beforeDestroy</code></td>
+          <td>เคลียร์ interval/timer, ปิด hub connection, ลบ event listener ที่ผูกไว้เอง</td>
+          <td><code>App.vue</code> มี logic ปิด SignalR hub connection ตอนเปลี่ยนหน้า (ใน router guard แทน)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <div class="callout-title">ข้อผิดพลาดที่พบบ่อย</div>
+      อย่าเรียก <code>this.$refs.xxx</code> ใน <code>created()</code> — ตอนนั้น DOM ยังไม่ถูกสร้าง <code>$refs.xxx</code> จะเป็น <code>undefined</code> เสมอ
+      ต้องรอถึง <code>mounted()</code> เท่านั้นถึงจะใช้ <code>$refs</code> ได้
+    </div>
+
+    <h2>4. ตัวอย่างจริง: โหลดข้อมูล + polling + cleanup (pattern ที่เจอบ่อยที่สุดในงานจริง)</h2>
+    <p>
+      สถานการณ์ที่เจอแทบทุกวัน: หน้าจอ "ติดตามสถานะคำสั่งซื้อ/งานที่ส่งประมวลผล" ต้อง
+      <strong>โหลดข้อมูลทันทีที่เข้าหน้า</strong> แล้ว <strong>poll (เรียกซ้ำเป็นช่วง ๆ)</strong> เพื่อเช็คสถานะล่าสุด
+      จนกว่าผู้ใช้จะออกจากหน้านั้น — ถ้าลืมเคลียร์ <code>setInterval</code> ตอนออกจากหน้า จะเกิด
+      <strong>memory leak และยังเรียก API ต่อไปเรื่อย ๆ ทั้งที่ผู้ใช้ไปหน้าอื่นแล้ว</strong> (บั๊กคลาสสิกที่เจอบ่อยมาก)
+    </p>
+    <pre><code>export default {
+  props: ["orderId"],
+  data() {
+    return {
+      order: null,
+      loading: true,
+      error: "",
+      pollTimer: null
+    };
+  },
+  created() {
+    // โหลดข้อมูลตั้งต้นทันทีที่ component ถูกสร้าง ไม่ต้องรอ DOM
+    this.fetchOrder();
+  },
+  mounted() {
+    // เริ่ม poll เช็คสถานะทุก 5 วินาที "หลังจาก" DOM พร้อมแล้ว
+    this.pollTimer = setInterval(() => {
+      this.fetchOrder({ silent: true }); // silent = ไม่โชว์ loading เต็มจอทุกรอบ
+    }, 5000);
+  },
+  beforeDestroy() {
+    // ต้องเคลียร์เสมอ ไม่งั้น interval จะยังทำงานต่อแม้ user ออกจากหน้านี้ไปแล้ว
+    clearInterval(this.pollTimer);
+  },
+  methods: {
+    async fetchOrder(opts = {}) {
+      if (!opts.silent) this.loading = true;
+      this.error = "";
+      try {
+        const res = await axios.get(`/api/orders/${this.orderId}`);
+        this.order = res.data;
+      } catch (err) {
+        this.error = "โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่";
+      } finally {
+        this.loading = false;
+      }
+    }
+  }
+};</code></pre>
+
+    <p>ด้านล่างคือ component เดียวกันแต่จำลอง API ด้วย <code>setTimeout</code> (แทน axios จริง) ให้กดดูการทำงานจริงได้ — สังเกตว่าพอกด "ทำลาย component" แล้ว log จะหยุดขึ้นทันที (เพราะ <code>beforeDestroy</code> เคลียร์ interval ไปแล้ว ไม่ใช่แค่ซ่อน UI เฉย ๆ)</p>
+
+    <div class="playground">
+      <div class="pg-label">ตัวอย่างสด: fetch + poll + cleanup <span class="live">● LIVE</span></div>
+      <div class="pg-body">
+        <div id="demo-order-tracker">
+          <button class="primary" @click="mounted = !mounted">{{ mounted ? 'ออกจากหน้านี้ (destroy)' : 'เข้าหน้าติดตามสถานะ (mount)' }}</button>
+          <button @click="log = []" style="margin-left:8px;">ล้าง log</button>
+          <div style="display:flex; gap:16px; margin-top:14px;">
+            <div style="flex:1;">
+              <order-tracker v-if="mounted" @log="onLog"></order-tracker>
+              <p v-else style="color:var(--text-dim)">(ออกจากหน้านี้แล้ว — ไม่มี interval ทำงานค้างอยู่)</p>
+            </div>
+            <div style="flex:1; background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; max-height:220px; overflow:auto;">
+              <div v-for="(l, i) in log" :key="i" style="font-family:monospace; font-size:0.85rem; color:#d8dee9;">{{ l }}</div>
+              <div v-if="log.length === 0" style="color:var(--text-dim); font-size:0.85rem;">ยังไม่มี log</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li>ลำดับ: <code>beforeCreate → created → beforeMount → mounted → (beforeUpdate → updated)* → beforeDestroy → destroyed</code></li>
+      <li>เรียก API / โหลดข้อมูลตั้งต้น: ใช้ <code>created</code> หรือ <code>mounted</code> (ถ้าต้องใช้ $refs ต้อง mounted เท่านั้น)</li>
+      <li>ทำ polling (setInterval) ให้เริ่มใน <code>mounted</code> และเคลียร์ใน <code>beforeDestroy</code> เสมอ — คู่กันเป็นคู่ ห้ามลืมฝั่งใดฝั่งหนึ่ง</li>
+      <li>เคลียร์ของอื่น ๆ (event listener, hub connection) ก็ใช้ <code>beforeDestroy</code> เหมือนกัน ไม่งั้น memory leak</li>
+    </ul>
+
+    <div class="pager">
+      <a href="01-vue-basics.html"><span class="dir">← ก่อนหน้า</span>01. Vue.js พื้นฐาน</a>
+      <a href="03-router.html"><span class="dir">ถัดไป →</span>03. Vue Router</a>
+    </div>
+  </main>
+</div>
+
+<script>
+Vue.component('child-demo', {
+  props: ['tick'],
+  template: `<div style="border:1px dashed var(--border); border-radius:8px; padding:12px;">
+      <p style="margin:0;">Child component (tick = {{ tick }})</p>
+    </div>`,
+  beforeCreate() { this.$emit('hook-log', 'beforeCreate — ยังไม่มี data ให้ใช้'); },
+  created() { this.$emit('hook-log', 'created — มี data แล้ว แต่ยังไม่มี DOM'); },
+  beforeMount() { this.$emit('hook-log', 'beforeMount — กำลังจะ render ครั้งแรก'); },
+  mounted() { this.$emit('hook-log', 'mounted — DOM พร้อมใช้งานแล้ว'); },
+  beforeUpdate() { this.$emit('hook-log', 'beforeUpdate — data เปลี่ยน, DOM ยังเก่าอยู่'); },
+  updated() { this.$emit('hook-log', 'updated — DOM re-render ตาม data ใหม่แล้ว'); },
+  beforeDestroy() { this.$emit('hook-log', 'beforeDestroy — ใกล้ตายแล้ว (เวลา cleanup)'); },
+  destroyed() { this.$emit('hook-log', 'destroyed — ตายสมบูรณ์แล้ว'); }
+});
+
+new Vue({
+  el: "#demo-lifecycle",
+  data() {
+    return { mounted: false, tick: 0, log: [] };
+  },
+  methods: {
+    onHookLog(msg) {
+      const time = new Date().toLocaleTimeString();
+      this.log.push(`[${time}] ${msg}`);
+    }
+  }
+});
+
+// ---- ตัวอย่างจริง: order-tracker (fetch + poll + cleanup) ----
+const statuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+
+Vue.component('order-tracker', {
+  data() {
+    return { order: null, loading: true, error: "", pollCount: 0, pollTimer: null };
+  },
+  created() {
+    // เหมือนโค้ดจริง: เรียก fetchOrder ทันทีที่ component ถูกสร้าง ไม่ต้องรอ DOM
+    this.$emit('log', 'created — เรียก fetchOrder() ครั้งแรกทันที (ยังไม่มี DOM)');
+    this.fetchOrder();
+  },
+  mounted() {
+    this.$emit('log', 'mounted — เริ่ม setInterval poll ทุก 2 วิ (เดโมนี้ย่นเวลาให้สั้นลง)');
+    this.pollTimer = setInterval(() => {
+      this.fetchOrder({ silent: true });
+    }, 2000);
+  },
+  beforeDestroy() {
+    clearInterval(this.pollTimer);
+    this.$emit('log', 'beforeDestroy — clearInterval แล้ว: จะไม่มีการเรียก fetchOrder ซ้ำอีกต่อไป');
+  },
+  methods: {
+    fetchOrder(opts) {
+      opts = opts || {};
+      if (!opts.silent) this.loading = true;
+      this.error = "";
+      // จำลอง axios.get(`/api/orders/${id}`) ด้วย setTimeout
+      setTimeout(() => {
+        this.pollCount++;
+        this.order = { status: statuses[Math.min(this.pollCount - 1, statuses.length - 1)] };
+        this.loading = false;
+        this.$emit('log', `fetchOrder resolve (ครั้งที่ ${this.pollCount}) — status = ${this.order.status}`);
+      }, 500);
+    }
+  },
+  template: `<div style="border:1px dashed var(--border); border-radius:8px; padding:12px;">
+      <p style="margin:0;" v-if="loading">กำลังโหลดสถานะคำสั่งซื้อ...</p>
+      <p style="margin:0;" v-else>สถานะ: <strong>{{ order.status }}</strong> (เรียก API แล้ว {{ pollCount }} ครั้ง)</p>
+    </div>`
+});
+
+new Vue({
+  el: "#demo-order-tracker",
+  data() {
+    return { mounted: false, log: [] };
+  },
+  methods: {
+    onLog(msg) {
+      const time = new Date().toLocaleTimeString();
+      this.log.push(`[${time}] ${msg}`);
+    }
+  }
+});
+</script>
+</body>
+</html>

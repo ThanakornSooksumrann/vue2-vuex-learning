@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 · ภาพรวมสถาปัตยกรรมโปรเจกต์ — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html" class="active"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 2 · โปรเจกต์ KL.Core.UI 06/10</div>
+    <h1>ภาพรวมสถาปัตยกรรมของ KL.Core.UI (Faco Core)</h1>
+    <p class="lead">
+      โปรเจกต์นี้ไม่ใช่ Vue app ธรรมดา ๆ ที่ generate จาก <code>vue create</code> — มันคือระบบ enterprise ขนาดใหญ่ที่มีการ "ประกอบร่าง" (compose)
+      หลาย ๆ กลไกเข้าด้วยกัน เช่น auto-routing, auto-vuex-module, multi-instance embedding, webpack alias พิเศษ
+      บทนี้จะไล่ตั้งแต่จุดเริ่มโหลดแอปจนถึงกลไกพิเศษที่ควรรู้ก่อนเริ่มเขียนโค้ด
+    </p>
+
+    <h2>1. Stack เต็ม ๆ ของโปรเจกต์นี้</h2>
+    <table>
+      <thead><tr><th>ส่วน</th><th>เทคโนโลยี</th><th>เวอร์ชัน</th><th>หมายเหตุ</th></tr></thead>
+      <tbody>
+        <tr><td>Framework</td><td>Vue.js</td><td>2.7.14</td><td>Options API ล้วน ไม่มี TypeScript</td></tr>
+        <tr><td>Routing</td><td>Vue Router</td><td>3.1.6</td><td>history mode, route auto-generate จากโฟลเดอร์ views</td></tr>
+        <tr><td>State</td><td>Vuex + vuex-pathify</td><td>3.1.1 / 1.2.2</td><td>module auto-register, ใช้ sync/get/set syntax</td></tr>
+        <tr><td>UI Component</td><td>Kendo UI for Vue</td><td>2020.1.406-423</td><td>Grid, DropDown, DatePicker, Window, TreeView ฯลฯ</td></tr>
+        <tr><td>Layout</td><td>Bootstrap-Vue</td><td>2.23.1</td><td>ครอบเป็น adapter component เอง (b-row, b-col, b-app)</td></tr>
+        <tr><td>Validation</td><td>Vuelidate</td><td>0.7.4</td><td>คู่กับ <code>FormGroup</code> shared component</td></tr>
+        <tr><td>HTTP</td><td>axios</td><td>0.27.2</td><td>ผ่าน <code>repository.js</code> ที่มี interceptor ผูก token/loading</td></tr>
+        <tr><td>Realtime</td><td>SignalR (@microsoft/signalr)</td><td>8.0.0</td><td>hub connection สำหรับ progress/notification</td></tr>
+        <tr><td>i18n</td><td>vue-i18n</td><td>8.11.2</td><td>ไทย/อังกฤษ, key รูปแบบ <code>FF-LB-000123</code></td></tr>
+        <tr><td>Build</td><td>Webpack</td><td>4.43.0</td><td>มี webpack alias เอง เช่น <code>faco.core@shared</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2>2. ลำดับการบูตแอป (Boot sequence)</h2>
+    <div class="lifecycle-diagram">
+      <div class="lc-row">
+        <div class="lc-box phase-create">
+          <div class="lc-hook">src/main.js</div>
+          <div class="lc-desc">Entry point จริง — import polyfill, เตรียม adapter component (b-row/b-col/b-card) แล้วเรียก <code>CreateVueInstance</code></div>
+        </div>
+      </div>
+      <div class="lc-arrow">↓</div>
+      <div class="lc-row">
+        <div class="lc-box phase-mount">
+          <div class="lc-hook">src/CreateVueInstance.js</div>
+          <div class="lc-desc">"ห้องเครื่อง" ของแอป — import + register Kendo ทุกตัว, Bootstrap-Vue, Vuelidate, ตั้ง global mixin, ผูก router+store+i18n แล้ว <code>new Vue({...})</code></div>
+        </div>
+      </div>
+      <div class="lc-arrow">↓</div>
+      <div class="lc-row">
+        <div class="lc-box phase-mount">
+          <div class="lc-hook">src/App.vue</div>
+          <div class="lc-desc">Root component จริง — เช็คว่าเป็นหน้า login/public/authorized หรือเปล่า แล้วค่อยแสดง <code>MasterLayout</code></div>
+        </div>
+      </div>
+      <div class="lc-arrow">↓</div>
+      <div class="lc-row">
+        <div class="lc-box phase-update">
+          <div class="lc-hook">MasterLayout.vue</div>
+          <div class="lc-desc">Shell หลัก: header + เมนู sidebar (kendo-treeview) + &lt;router-view&gt; ที่แสดงหน้าจอปัจจุบัน (ดูบทที่ 08)</div>
+        </div>
+      </div>
+    </div>
+
+    <pre><code>// src/main.js (ของจริง — ย่อบางส่วน)
+import 'babel-polyfill';
+import * as cmpCore from "faco.core@shared/Adapter/Bootstrap/index.js";
+
+const adapterCmp = {
+  components: {
+    'b-col': cmpCore.BCol, 'b-row': cmpCore.BRow,
+    'b-card': cmpCore.BCard, 'b-container': cmpCore.BContainer,
+    'b-app': cmpCore.BApp
+  }
+};
+
+import initialVMInstance from "./CreateVueInstance";
+initialVMInstance(null, adapterCmp).$mount("#app-root");</code></pre>
+
+    <div class="callout tip">
+      <div class="callout-title">สังเกต: <code>initialVMInstance(null, adapterCmp)</code> — พารามิเตอร์ตัวแรกทำไมเป็น null?</div>
+      เพราะ <code>CreateVueInstance.js</code> ถูกออกแบบมาให้เรียกได้ 2 แบบ: (1) เป็นแอปหลักตัวเดียว (parameter แรก = null ตามปกติ)
+      หรือ (2) เป็น "แอปย่อยที่ฝังอยู่ในแอปหลักอีกที" (ส่ง vmMaster ของแอปหลักเข้าไป) — อธิบายต่อในหัวข้อถัดไป
+    </div>
+
+    <h2>3. Global mixin และ Prototype property — เครื่องมือที่ใช้ได้ทุก component ทันที</h2>
+    <p><code>CreateVueInstance.js</code> ผูกของพวกนี้ไว้กับทุก component โดยอัตโนมัติ ไม่ต้อง import เอง:</p>
+    <table>
+      <thead><tr><th>ชื่อ</th><th>คืออะไร</th><th>ใช้ยังไง</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>this.$utils</code></td>
+          <td>Utility รวมของระบบ (singleton) เช่น อ่าน/เขียน localStorage, แจ้งเตือน, validate, hash</td>
+          <td><code>this.$utils.addNotify("บันทึกสำเร็จ", 200)</code>, <code>this.$utils.getStorage("token")</code></td>
+        </tr>
+        <tr>
+          <td><code>this.$store</code></td>
+          <td>Vuex store (มาตรฐาน Vue) — ใช้คู่กับ pathify <code>get/set</code></td>
+          <td>ดูบทที่ 07</td>
+        </tr>
+        <tr>
+          <td>Global mixin methods (<code>_getMainApp</code>, <code>_onSuccessUploadFile</code>, ฯลฯ)</td>
+          <td>ฟังก์ชันช่วยเรื่อง upload ไฟล์, จัดการ SignalR hub, validate tag ห้ามใส่ในช่อง input</td>
+          <td>เรียกใช้ได้ตรง ๆ ทุก component เช่น <code>@success="_onSuccessUploadFile"</code> บน <code>kendo-upload</code></td>
+        </tr>
+        <tr>
+          <td><code>$configCore</code></td>
+          <td>ตัวแปร global (ไม่ใช่ของ Vue) เก็บ config ต่อ environment เช่น URL ของแต่ละ API, ชื่อแอป, isDebug</td>
+          <td><code>$configCore.hostApi.financeApi</code>, <code>$configCore.appName</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>4. Multi-instance pattern (vmMaster) — จุดที่ไม่เหมือนโปรเจกต์ Vue ทั่วไป</h2>
+    <p>
+      บางกรณีระบบนี้ต้อง<strong>ฝัง Vue instance หนึ่งไว้ในอีก instance หนึ่ง</strong> (เช่น เปิดโมดูลย่อยเป็น embedded widget ภายในแอปหลัก)
+      ฟังก์ชัน <code>CreateVueInstance</code> เลยรับ <code>vmMaster</code> เป็น parameter — ถ้ามีค่า แปลว่า instance นี้เป็น "แอปลูก" ที่ถูกฝังอยู่ในแอปแม่
+    </p>
+    <pre><code>// src/CreateVueInstance.js (โค้ดจริง)
+export default (vmMaster, adapterCmp) => {
+  // ถ้าเป็น external (แอปลูกที่ฝังอยู่ในแอปแม่) ให้เอา route ของตัวเองไปรวมกับ router ของแอปแม่
+  if ($configCore.__isExternal) {
+    const routes = router.options.routes || [];
+    vmMaster.$router.options.routes.push(...routes);
+    vmMaster.$router.addRoutes(routes);
+  }
+
+  const useRouter = ($configCore.__isExternal ? vmMaster.$router : router);
+
+  const vmInstance = new Vue({
+    router: useRouter,
+    i18n,
+    store,
+    render: h => h(App)
+  });
+  vmInstance.vmMaster = vmMaster;   // เก็บ reference กลับไปหาแอปแม่ไว้ใช้ทีหลัง
+  return vmInstance;
+};</code></pre>
+    <div class="callout project">
+      <div class="callout-title">สิ่งที่ต้องรู้ในทางปฏิบัติ</div>
+      ในโค้ดของหลาย component จะเห็น pattern แบบ
+      <code>const vmMaster = this.$root.vmMaster; if (vmMaster) { ... } else { ... }</code> อยู่บ่อย ๆ —
+      นั่นคือการเช็คว่า "ตอนนี้ component รันอยู่ในโหมดแอปเดี่ยว หรือถูกฝังอยู่ในแอปแม่" แล้วเลือกพฤติกรรมให้เหมาะสม
+      (เช่น จะ dispatch action ไปที่ store ของตัวเอง หรือส่งต่อให้แอปแม่จัดการแทน) ถ้าเจอโค้ดแบบนี้ไม่ต้องแปลกใจ มันจงใจทำแบบนี้
+    </div>
+
+    <h2>5. Webpack alias พิเศษ: <code>faco.core@...</code></h2>
+    <p>
+      ทั้งโปรเจกต์ import ไฟล์กันด้วย alias รูปแบบ <code>faco.core@app/...</code>, <code>faco.core@shared/...</code>, <code>faco.core@views/...</code>
+      แทนการเขียน relative path (<code>../../../shared/xxx</code>) ที่ยาวและงงเวลาย้ายไฟล์ — alias พวกนี้ถูกตั้งไว้ใน webpack config แล้ว ให้จำ mapping คร่าว ๆ ไว้ดังนี้:
+    </p>
+    <table>
+      <thead><tr><th>Alias</th><th>ชี้ไปที่โฟลเดอร์จริง</th></tr></thead>
+      <tbody>
+        <tr><td><code>faco.core@shared</code></td><td><code>src/app/shared</code></td></tr>
+        <tr><td><code>faco.core@views</code></td><td><code>src/app/views</code></td></tr>
+        <tr><td><code>faco.core@app</code></td><td><code>src/app</code></td></tr>
+        <tr><td><code>faco.core@repository</code></td><td><code>src/app/repositories/repository.js</code></td></tr>
+        <tr><td><code>faco.core@assets</code></td><td><code>src/app/assets</code></td></tr>
+        <tr><td><code>faco.core@src</code></td><td><code>src</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. Build แบบแบ่ง module (SCOPE_MODULE)</h2>
+    <p>
+      โปรเจกต์นี้ใหญ่มาก (มีทั้ง Finance, Collection, Legal, HPAdmin, PostDateCheque ฯลฯ) จึงมี script npm หลายตัวใน <code>package.json</code>
+      เพื่อรัน dev server โดยจำกัดขอบเขต module ที่ build (ลดเวลา build/reload ตอน dev):
+    </p>
+    <pre><code>npm run local              // รันทุก module (เต็มระบบ)
+npm run local-finance      // รันเฉพาะ Finance
+npm run local-hpadmin      // รันเฉพาะ HPAdmin
+npm run local-main         // รันเฉพาะ Finance,HPAdmin,Legal,Collection</code></pre>
+    <div class="callout tip">
+      <div class="callout-title">คำแนะนำ</div>
+      ถ้ากำลังพัฒนาหน้าจอใน module ไหน ให้รัน script ที่ตรงกับ module นั้น (หรือ <code>local-main</code> ถ้าทำหลาย module) จะทำให้ webpack-dev-server build เร็วขึ้นมากเทียบกับ <code>npm run local</code> ที่ build ทั้งระบบ
+    </div>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li>ลำดับบูต: <code>main.js → CreateVueInstance.js → App.vue → MasterLayout.vue → router-view</code></li>
+      <li><code>this.$utils</code>, global mixin methods, และ <code>$configCore</code> ใช้ได้ทุก component ทันทีโดยไม่ต้อง import</li>
+      <li>รู้จัก pattern <code>vmMaster</code> ไว้ — เจอโค้ดเช็ค <code>this.$root.vmMaster</code> อย่าตกใจ</li>
+      <li>import ไฟล์ด้วย alias <code>faco.core@shared</code>, <code>faco.core@views</code>, <code>faco.core@app</code> แทน relative path ยาว ๆ</li>
+      <li>เลือกใช้ npm script ให้ตรงกับ module ที่กำลังทำ เพื่อความเร็วตอน dev</li>
+    </ul>
+
+    <div class="pager">
+      <a href="05-kendo-ui.html"><span class="dir">← ก่อนหน้า</span>05. Kendo UI for Vue</a>
+      <a href="07-project-router-store.html"><span class="dir">ถัดไป →</span>07. Router &amp; Vuex ของโปรเจกต์</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

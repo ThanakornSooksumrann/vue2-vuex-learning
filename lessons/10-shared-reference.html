@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 · Shared Component/Store/Utility ทั้งหมด — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html" class="active"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 2 · โปรเจกต์ KL.Core.UI 10/10</div>
+    <h1>Shared Component / Store / Utility ทั้งหมด (Full Reference)</h1>
+    <p class="lead">
+      บทที่ 08 พาดูแค่ตัวหลัก ๆ ที่ใช้บ่อยที่สุด แต่โปรเจกต์นี้สร้างของกลางไว้เยอะกว่านั้นมาก
+      หน้านี้รวบรวม<strong>ทุกตัว</strong>ที่อยู่ใต้ <code>src/app/shared/</code> (Vue component), <code>src/app/store/shared/</code> (Vuex module),
+      และทุก method ของ <code>this.$utils</code> — ใช้เป็น reference เปิดหาเวลาจะเขียนฟีเจอร์ใหม่ ก่อนเขียนเองให้เช็คตารางพวกนี้ก่อนเสมอว่ามีของสำเร็จรูปอยู่แล้วหรือไม่
+    </p>
+
+    <div class="callout tip">
+      <div class="callout-title">วิธีใช้หน้านี้</div>
+      กด <span class="kbd">Ctrl/Cmd + F</span> ค้นหาชื่อสิ่งที่ต้องการ (เช่น "upload", "date", "lookup") แทนการไล่อ่านทั้งหมด
+      แต่ละตัวมี path ไฟล์จริงกำกับไว้ เปิดไฟล์นั้นดู prop/option เต็ม ๆ ได้เสมอเพราะบางตัวมี option เยอะกว่าที่สรุปไว้ที่นี่
+    </div>
+
+    <h2>1. Shared Vue Components (<code>src/app/shared/</code>)</h2>
+
+    <h3>1.1 Cell/ — ตัว editor/แสดงผลของแต่ละคอลัมน์ใน Grid</h3>
+    <p>ใช้เป็น custom cell template ผ่าน <code>columns[].cell</code> หรือ <code>editor</code> ของ <code>GridDisplay</code>/<code>GridProxy</code> ทุกตัวรับ props <code>field</code>, <code>dataItem</code>, <code>options</code> เหมือนกัน และ emit <code>itemchange({dataItem, field, value})</code> เมื่อมีการแก้ไข</p>
+    <table>
+      <thead><tr><th style="width:190px;">Component</th><th>ใช้ทำอะไร</th><th>Options/Props เด่น</th></tr></thead>
+      <tbody>
+        <tr><td><code>CellTextbox</code></td><td>ช่องกรอกข้อความ 1 บรรทัด</td><td><code>maxLength</code>, <code>fnReadonly</code>, <code>fnColor</code></td></tr>
+        <tr><td><code>CellTextarea</code></td><td>ช่องกรอกข้อความหลายบรรทัด</td><td><code>maxLength</code>, <code>fnReadonly</code></td></tr>
+        <tr><td><code>CellNumeric</code></td><td>ช่องกรอกตัวเลข (Kendo spinner)</td><td><code>min</code>, <code>max</code>, <code>decimal</code>, <code>spinners</code>, <code>fnReadonly</code></td></tr>
+        <tr><td><code>CellDisplayNumber</code></td><td>แสดงตัวเลขอย่างเดียว จัดรูปแบบให้ (อ่านอย่างเดียว ไม่แก้ไข)</td><td><code>decimal</code>, <code>fnColor</code>, <code>fnRenderer</code></td></tr>
+        <tr><td><code>CellDatePicker</code></td><td>เลือกวันที่ในเซลล์</td><td><code>fnMin</code>, <code>fnMax</code> (ฟังก์ชันคำนวณช่วงวันที่ได้)</td></tr>
+        <tr><td><code>CellDisplayDatePicker</code></td><td>แสดงวันที่อย่างเดียว จัดรูปแบบไทย/อังกฤษให้</td><td><code>format</code></td></tr>
+        <tr><td><code>CellCheckbox</code></td><td>ติ๊กถูก/ผิดในเซลล์</td><td><code>checkValue</code>, <code>uncheckValue</code>, <code>align</code></td></tr>
+        <tr><td><code>CellHeaderCheckbox</code></td><td>checkbox บน header คอลัมน์ (เลือกทั้งหมด)</td><td>emit <code>onClickHeaderCellChk(event, checked)</code></td></tr>
+        <tr><td><code>CellHeaderCheckboxDetail</code></td><td>เหมือน HeaderCheckbox แต่ใช้กับ detail grid ที่ซ้อนอยู่ข้างใน</td><td>คู่กับ store <code>Controls_Cell_CellHeaderCheckboxDetail</code></td></tr>
+        <tr><td><code>CellDropDownStatus</code></td><td>เลือกสถานะจาก dropdown ในเซลล์</td><td>มักผูกกับ list สถานะคงที่</td></tr>
+        <tr><td><code>CellLookup</code></td><td>ค้นหา/เลือกข้อมูล master (เช่น รหัสลูกค้า) ในเซลล์ — ใช้ <code>&lt;Lookup&gt;</code> ข้างในอีกที</td><td><code>codeField</code>, <code>displayField</code>, <code>columns</code>, <code>transport</code>, <code>mode</code>, <code>widthCode</code>, <code>fnHideComponent</code>, <code>parameter</code></td></tr>
+        <tr><td><code>CellHyperLink</code></td><td>ลิงก์แบบ static ที่คลิกแล้ว emit event</td><td>emit <code>onClickCellLink</code></td></tr>
+        <tr><td><code>CellDynamicHyperLink</code></td><td>ลิงก์ที่ปลายทาง route เปลี่ยนได้ตาม dataItem</td><td>emit <code>onClickCellLink</code></td></tr>
+        <tr><td><code>CellButton</code></td><td>ปุ่ม action ในแถว (เช่น ปุ่มดู/แก้ไข)</td><td><code>text</code>, <code>icon</code>, <code>width</code>, <code>align</code>; emit <code>onClickCellButton(event, dataItem)</code></td></tr>
+        <tr><td><code>CellUploadFile</code></td><td>อัปโหลด/แสดงไฟล์แนบในแถว พร้อม preview/download/remove</td><td><code>bindingParams</code>, <code>fnHideRemove</code>, <code>permissionMode</code>; คู่กับ store <code>Controls_Cell_CellUploadFile</code></td></tr>
+        <tr><td><code>CellInputTime</code></td><td>กรอกเวลา (ชั่วโมง:นาที) แบบ masked input</td><td>ใช้คู่กับ field เวลาแยกจาก date</td></tr>
+        <tr><td><code>CellTextSplit</code></td><td>แสดง/แยกข้อความที่เป็น pattern พิเศษในเซลล์</td><td>ใช้เมื่อ field เดียวต้องแยกแสดงหลายส่วน</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>ตัวอย่างการใช้งาน:</strong> นิยาม <code>columns</code> ของ Grid โดยผูก Cell component ให้แต่ละคอลัมน์ตามชนิดข้อมูล แล้วรับการแก้ไขทั้งหมดที่ event เดียว</p>
+    <pre><code>data() {
+  return {
+    columns: [
+      { field: "code", title: "รหัส", width: 100 },
+      { field: "name", title: "ชื่อลูกค้า", editor: "CellTextbox", options: { maxLength: 100 } },
+      { field: "amount", title: "ยอดเงิน", editor: "CellNumeric", options: { min: 0, decimal: 2 } },
+      { field: "dueDate", title: "วันครบกำหนด", editor: "CellDatePicker" },
+      { field: "isActive", title: "ใช้งาน", editor: "CellCheckbox" },
+      { field: "customerCode", title: "ลูกค้า", editor: "CellLookup", options: {
+          codeField: "code", displayField: "name",
+          transport: { read: { url: "/Customer/Search" } }
+        }
+      },
+      { field: "file", title: "ไฟล์แนบ", editor: "CellUploadFile" },
+      { field: "action", title: "", editor: "CellButton", options: { icon: "edit", text: "แก้ไข" } }
+    ]
+  };
+},
+methods: {
+  // ทุก Cell component ที่แก้ไขได้จะยิง event นี้เหมือนกันหมด
+  onItemChange({ dataItem, field, value }) {
+    this.$set(dataItem, field, value);   // อัปเดตค่าลง dataItem ของแถวนั้นโดยตรง
+  },
+  onClickCellButton(event, dataItem) {
+    this.$utils.routerPush(`/Customer/Edit?code=${dataItem.customerCode}`);
+  }
+}</code></pre>
+
+    <h3>1.2 Grid/ — Grid หลักและตัวช่วย</h3>
+    <table>
+      <thead><tr><th style="width:190px;">Component</th><th>ใช้ทำอะไร</th><th>Props/Events เด่น</th></tr></thead>
+      <tbody>
+        <tr><td><code>GridProxy</code></td><td>Grid ที่ดึงข้อมูลจาก API เอง พร้อม server-side paging/filter/sort — <strong>ตัวที่ใช้บ่อยสุด</strong></td><td>props: <code>columns</code>, <code>url</code>, <code>parameters</code>, <code>height</code>; events: <code>onRowClick</code>, <code>onClickCellLink</code>, <code>dataStateChange</code></td></tr>
+        <tr><td><code>GridDisplay</code></td><td>Grid ที่รับ data มาแสดงตรง ๆ (ไม่ยิง API เอง) — <code>GridProxy</code> ใช้ตัวนี้ข้างในอีกที</td><td>props: <code>columns</code>, <code>dataItems</code>, <code>totalItems</code>, <code>editField</code>, <code>enableVirtual</code>, <code>detail</code>; methods: <code>clear()</code>, <code>getAllData()</code>, <code>cancelChanges()</code></td></tr>
+        <tr><td><code>GridLazyLoad</code></td><td>โหลดข้อมูลจำนวนมากแบบเป็นก้อน (virtual scroll) เหมาะกับข้อมูลหลักหมื่น-แสนแถว</td><td>props: <code>url</code>, <code>sizeLoad</code>, <code>startSizeLoad</code>, <code>fetchMethod</code>; methods: <code>fetch()</code>, <code>getDataChange()</code>, <code>importData()</code>; คู่กับ store <code>Controls_Grid_GridLazyLoad</code></td></tr>
+        <tr><td><code>GridNative</code></td><td>ตัวห่อ Kendo Grid ดิบ ๆ (ไม่ค่อยเรียกตรง ๆ — ตัวอื่นข้างบนห่อไว้ให้แล้ว)</td><td>ใช้เมื่อต้อง customize Grid ลึกจริง ๆ เท่านั้น</td></tr>
+        <tr><td><code>Filters/ColumnMenu</code></td><td>เมนู filter ต่อคอลัมน์ (ตัวกรองแบบ Excel)</td><td>ใช้ผูกกับ <code>columnMenu</code> ของ Grid</td></tr>
+        <tr><td><code>Filters/FilterItems/FilterDateMasked</code></td><td>ช่อง filter วันที่แบบ masked input</td><td>ใช้เป็น custom filter cell ของคอลัมน์วันที่</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>ตัวอย่างการใช้งาน:</strong> <code>GridProxy</code> พร้อมปุ่มเสริมผ่าน slot และดักคลิกแถว</p>
+    <pre><code>&lt;GridProxy
+  ref="grid"
+  :columns="columns"
+  :url="'/Customer/Search'"
+  :parameters="{ status: filterStatus }"
+  :height="450"
+  @onRowClick="onRowClick"
+&gt;
+  &lt;template #btnOptionR&gt;
+    &lt;kendo-button icon="excel" @click="exportExcel"&gt;Export&lt;/kendo-button&gt;
+  &lt;/template&gt;
+&lt;/GridProxy&gt;
+
+&lt;script&gt;
+methods: {
+  onRowClick(dataItem) {
+    this.$utils.routerPush(`/Customer/Detail?code=${dataItem.code}`);
+  },
+  refreshGrid() {
+    this.$refs.grid.onPageLoad(1);   // สั่งให้ดึงข้อมูลหน้า 1 ใหม่ (หลังกด save/filter)
+  }
+}
+&lt;/script&gt;</code></pre>
+
+    <h3>1.3 Modal/ — popup และ dialog</h3>
+    <table>
+      <thead><tr><th style="width:190px;">Component</th><th>ใช้ทำอะไร</th><th>Methods/Props เด่น</th></tr></thead>
+      <tbody>
+        <tr><td><code>AlertMessage</code></td><td>แจ้งเตือน/ยืนยัน แสดง title+message พร้อมสีตาม status (400 เตือน, 500 error, 401 unauthorized)</td><td><code>open(title, message, status)</code>, <code>onClickOk()</code>, <code>onClickCancel()</code></td></tr>
+        <tr><td><code>LoadingModal</code></td><td>หน้าจอ loading พร้อมข้อความสถานะ — เปิด/ปิดอัตโนมัติจาก interceptor ของ axios ผ่าน store <code>Controls_Modal_LoadingModal</code></td><td><code>open()</code>, <code>close()</code></td></tr>
+        <tr><td><code>SearchModal</code></td><td>popup ค้นหา/เลือกข้อมูล master ใช้คู่กับ <code>Lookup</code>/<code>CellLookup</code></td><td><code>open()</code>, <code>initialConfig(cfg)</code>, <code>onSelectItem()</code>, <code>reset()</code></td></tr>
+        <tr><td><code>PopupDynamic</code></td><td>เปิด component ใด ๆ (ตาม route path) เป็น popup แบบ dynamic โดยไม่ต้องรู้จัก component นั้นล่วงหน้า</td><td>props: <code>value</code> (v-model), <code>path</code>, <code>params</code>, <code>width</code>, <code>title</code></td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>ตัวอย่างการใช้งาน:</strong></p>
+    <pre><code>&lt;template&gt;
+  &lt;div&gt;
+    &lt;AlertMessage ref="alertMessage" /&gt;
+    &lt;LoadingModal ref="loadingModal" /&gt;   &lt;!-- ปกติ App.vue มีให้อยู่แล้วระดับแอป ไม่ต้องประกาศเองในทุกหน้าจอ --&gt;
+    &lt;SearchModal ref="searchModal" /&gt;
+    &lt;PopupDynamic v-model="showPopup" :path="'/Customer/QuickView'" :params="{ code: selectedCode }" title="ดูข้อมูลลูกค้า" /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+methods: {
+  onDeleteClick() {
+    // เปิด modal ยืนยัน — ใช้ callback fnOnYes/fnOnNo แทนการ await
+    this.$refs.alertMessage.fnOnYes = () => { this.doDelete(); };
+    this.$refs.alertMessage.open("ยืนยันการลบ", "ต้องการลบรายการนี้ใช่หรือไม่?", 400);
+  },
+  openLookup() {
+    this.$refs.searchModal.initialConfig({
+      columns: this.lookupColumns,
+      url: "/Customer/Search",
+      onSelect: (dataItem) => { this.selectedCode = dataItem.code; }
+    });
+    this.$refs.searchModal.open();
+  },
+  showQuickView(code) {
+    this.selectedCode = code;
+    this.showPopup = true;   // v-model ของ PopupDynamic เปิด/ปิด popup
+  }
+}
+&lt;/script&gt;</code></pre>
+    <div class="callout tip">
+      <div class="callout-title">ไม่ต้องเรียก LoadingModal เอง</div>
+      <code>LoadingModal</code> ถูกเปิด/ปิดอัตโนมัติจาก axios interceptor ทุกครั้งที่มี request/response (ผ่าน store <code>Controls_Modal_LoadingModal</code>) — ไม่ต้อง <code>.open()</code>/<code>.close()</code> เองในโค้ดหน้าจอทั่วไป
+    </div>
+
+    <h3>1.4 Input/ — input พิเศษที่ใช้ทั่วทั้งฟอร์ม</h3>
+    <table>
+      <thead><tr><th style="width:190px;">Component</th><th>ใช้ทำอะไร</th><th>Props/Events เด่น</th></tr></thead>
+      <tbody>
+        <tr><td><code>Lookup</code></td><td>ช่องกรอกรหัส+ชื่อ พร้อมปุ่มเปิด SearchModal ค้นหา (ใช้แยกจาก Grid ได้ เช่นในฟอร์ม)</td><td>props: <code>value</code>, <code>columns</code>, <code>transport</code>, <code>mode</code> ('both'/'codeOnly'/'displayOnly'), <code>codeField</code>, <code>displayField</code>; emit <code>change(value, dataItem, source)</code></td></tr>
+        <tr><td><code>Trigger</code></td><td>ปุ่ม/ไอคอนติดท้าย input (ใช้เป็น building block ให้ <code>Lookup</code>)</td><td>props: <code>icon</code>, <code>disabledTrigger</code>; slot: <code>front</code>, <code>back</code>; emit <code>clickTrigger()</code></td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>ตัวอย่างการใช้งาน:</strong> ช่องเลือกรหัสลูกค้าในฟอร์ม (นอก Grid)</p>
+    <pre><code>&lt;Lookup
+  v-model="customerCode"
+  :columns="[
+    { field: 'code', title: 'รหัส' },
+    { field: 'name', title: 'ชื่อลูกค้า' }
+  ]"
+  :transport="{ read: { url: '/Customer/Search' } }"
+  :code-field="'code'"
+  :display-field="'name'"
+  :mode="'both'"
+  @change="onCustomerChange"
+/&gt;
+
+&lt;script&gt;
+methods: {
+  onCustomerChange(value, dataItem, source) {
+    // dataItem = ข้อมูลเต็มของแถวที่เลือก, source บอกว่าเลือกจาก popup หรือพิมพ์เอง
+    this.customerName = dataItem ? dataItem.name : "";
+  }
+}
+&lt;/script&gt;</code></pre>
+
+    <h3>1.5 Toolbar/, Form/, Notify/ — ส่วนควบคุมหน้าจอมาตรฐาน</h3>
+    <table>
+      <thead><tr><th style="width:190px;">Component</th><th>ใช้ทำอะไร</th><th>Props/Methods เด่น</th></tr></thead>
+      <tbody>
+        <tr><td><code>MainActionToolbar</code></td><td>แถบปุ่มบนหัวหน้าจอ (save/reset มาตรฐาน + ปุ่มเสริมผ่าน slot)</td><td>props: <code>actions</code> (array, string หรือ object <code>{text, icon, fn}</code>), <code>docked</code>, <code>border</code>; emit <code>onSave</code>, <code>onReset</code></td></tr>
+        <tr><td><code>FormGroup</code></td><td>ครอบ input พร้อม label และ tooltip แสดง error จาก Vuelidate อัตโนมัติ</td><td>props: <code>label</code>, <code>labelWidth</code>; slot: <code>label</code>, <code>component</code>, <code>labelEnd</code></td></tr>
+        <tr><td><code>NotifyMessage</code></td><td>Toast แจ้งเตือนมุมจอ (auto-hide)</td><td>method: <code>show(message, status, hideAfter)</code>; status: success/warning/error/info</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>ตัวอย่างการใช้งาน:</strong> Toolbar ปุ่ม custom + ฟอร์มที่ validate ด้วย Vuelidate ผ่าน FormGroup</p>
+    <pre><code>&lt;MainActionToolbar
+  :actions="[
+    'reset',
+    { text: 'อนุมัติ', icon: 'check', fn: onApprove }
+  ]"
+  @onSave="onSave"
+&gt;&lt;/MainActionToolbar&gt;
+
+&lt;FormGroup :label="'ชื่อลูกค้า'" :label-width="120"&gt;
+  &lt;template #component&gt;
+    &lt;kendo-textbox v-model="$v.form.name.$model" /&gt;
+  &lt;/template&gt;
+&lt;/FormGroup&gt;
+
+&lt;script&gt;
+import { required, maxLength } from "vuelidate/lib/validators";
+
+export default {
+  data() {
+    return { form: { name: "" } };
+  },
+  validations: {
+    form: {
+      name: { required, maxLength: maxLength(100) }
+    }
+  },
+  methods: {
+    onSave() {
+      this.$v.$touch();                 // สั่งเช็ค validate ทั้งฟอร์ม — ถ้าไม่ผ่าน FormGroup จะโชว์ tooltip error ให้เอง
+      if (this.$v.$invalid) return;
+      // ... ส่ง API ต่อ
+    },
+    onApprove() { /* ... */ },
+    onReset() { this.$v.$reset(); }
+  }
+};
+&lt;/script&gt;</code></pre>
+    <p>เรียก toast แจ้งเตือนได้ 2 แบบ: ผ่าน <code>this.$utils.addNotify(msg, status)</code> (แนะนำ ใช้ได้ทุกที่โดยไม่ต้องมี <code>&lt;NotifyMessage&gt;</code> เอง เพราะ App.vue มีให้ระดับแอปแล้ว) หรือถ้ามี ref ตรง ๆ ก็เรียก <code>this.$refs.notifyMessage.show("บันทึกสำเร็จ", "success")</code> ได้เหมือนกัน</p>
+
+    <h3>1.6 Tab/, ListView/, Viewer/, HeadNotify/, Editor/ — ส่วนเฉพาะทาง</h3>
+    <table>
+      <thead><tr><th style="width:190px;">Component</th><th>ใช้ทำอะไร</th><th>รายละเอียดเด่น</th></tr></thead>
+      <tbody>
+        <tr><td><code>TabDynamic</code></td><td>ระบบแท็บแบบ dynamic รองรับซ้อนได้ถึง 3 ระดับ โหลด component ตาม config (path/route หรือ component ตรง ๆ)</td><td>methods: <code>initialTab(dataTab)</code>, <code>changeTabIndex()</code>, <code>resetTab()</code>; cache component ไว้ที่ <code>this.$utils.tabs</code></td></tr>
+        <tr><td><code>ReportListView</code></td><td>รายการรายงานที่กำลัง/generate เสร็จแล้ว พร้อม preview/download/ลบ</td><td>คู่กับ store <code>Controls_ListView_ReportListView</code>; action <code>printReport!</code>, <code>deleteReport!</code></td></tr>
+        <tr><td><code>ReportDataListView</code></td><td>เหมือน ReportListView แต่สำหรับรายงานประเภท "ข้อมูลดิบ" (report data)</td><td>คู่กับ store <code>Controls_ListView_ReportDataListView</code></td></tr>
+        <tr><td><code>ARViewer</code></td><td>เปิดดูรายงานที่ generate จาก GrapeCity Active Reports</td><td>method: <code>openReport(reports)</code>; คู่กับ store <code>Controls_Viewer_ARViewer</code></td></tr>
+        <tr><td><code>ReportHeadNotify</code></td><td>ไอคอนวงกลมลอย (draggable) แสดง progress การ generate รายงาน มุมจอ</td><td>ใช้ vue-draggable-resizable; แสดง % progress</td></tr>
+        <tr><td><code>ReportDataHeadNotify</code></td><td>เหมือน ReportHeadNotify แต่สำหรับ report data</td><td>&nbsp;</td></tr>
+        <tr><td><code>EditorPdf</code></td><td>แสดง/แก้ไขเนื้อหาที่จะ export เป็น PDF (ใช้คู่กับ template HTML + stylesheet)</td><td>props: <code>html</code>, <code>stylesheets</code></td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>ตัวอย่างการใช้งาน:</strong> แท็บย่อยในหน้าจอเดียว + เปิดรายงาน</p>
+    <pre><code>&lt;TabDynamic ref="tabs" :mode="'line'" /&gt;
+
+&lt;script&gt;
+export default {
+  mounted() {
+    this.$refs.tabs.initialTab([
+      { name: "info", title: "ข้อมูลทั่วไป", component: "CustomerInfo" },
+      { name: "history", title: "ประวัติ", path: "/Customer/History" }  // โหลดจาก route ก็ได้
+    ]);
+  },
+  methods: {
+    onPrintClick() {
+      // เปิดรายงานผ่าน ARViewer (ปกติ App.vue เรียก this.openReport(reports) ให้อยู่แล้วเมื่อ backend push ผ่าน SignalR)
+      this.$root.App.openReport([{ reportName: "ใบเสร็จ", uuId: "xxx-uuid", apiName: "financeApi" }]);
+    }
+  }
+};
+&lt;/script&gt;
+
+&lt;!-- EditorPdf: แก้ไข/แสดงเนื้อหาก่อน export เป็น PDF --&gt;
+&lt;EditorPdf :html="htmlTemplate" :stylesheets="[`${_url_}src/app/assets/styles/report/base.css`]" /&gt;</code></pre>
+    <div class="callout tip">
+      <div class="callout-title"><code>ReportListView</code> / <code>ReportHeadNotify</code> ไม่ต้องเรียกเอง</div>
+      สองตัวนี้ถูกฝังไว้ใน layout ระดับแอป (<code>App.vue</code>) แล้ว ทำงานอัตโนมัติผ่าน SignalR hub — หน้าจอทั่วไปไม่ต้อง import มาใช้เอง นอกจากกำลังแก้ไขตัว layout กลางจริง ๆ
+    </div>
+
+    <h3>1.7 BaseComponents/, Layout/, Pages/, Adapter/ — โครงระบบ</h3>
+    <table>
+      <thead><tr><th style="width:190px;">Component</th><th>ใช้ทำอะไร</th><th>รายละเอียดเด่น</th></tr></thead>
+      <tbody>
+        <tr><td><code>BaseWindow</code></td><td>ครอบ Kendo Window อีกชั้น ส่ง slot/listener ทะลุผ่านให้หมด — register เป็น global <code>&lt;kendo-window&gt;</code></td><td>props: <code>modal</code>, <code>width</code>, <code>title</code>, <code>resizable</code>, <code>actions</code></td></tr>
+        <tr><td><code>MasterLayout</code></td><td>Shell หลักของแอป (header/sidebar/router-view) — ดูรายละเอียดเต็มบทที่ 08</td><td>&nbsp;</td></tr>
+        <tr><td><code>AppLayout</code></td><td>Layout รองสำหรับพื้นที่เนื้อหาแอป (ใช้ในบริบทเฉพาะ เช่น embed mode)</td><td>&nbsp;</td></tr>
+        <tr><td><code>Unauthotized</code></td><td>หน้า error 401/403 มาตรฐาน แสดงเมื่อ user ไม่มีสิทธิ์เข้าหน้านั้น</td><td>&nbsp;</td></tr>
+        <tr><td><code>BApp</code>, <code>BTabs</code>, <code>BCol</code>, <code>BRow</code>, <code>BContainer</code>, <code>BCard</code></td><td>ตัวห่อ Bootstrap-Vue เพื่อ register เป็น global component ของโปรเจกต์เอง (แทนการ import bootstrap-vue ตรง ๆ)</td><td>ใช้เหมือน Bootstrap grid ปกติ: <code>&lt;b-row&gt;&lt;b-col&gt;...&lt;/b-col&gt;&lt;/b-row&gt;</code></td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>ตัวอย่างการใช้งาน:</strong></p>
+    <pre><code>&lt;kendo-window ref="myWindow" :title="'รายละเอียด'" :width="500" :modal="true"&gt;
+  &lt;p&gt;เนื้อหา popup...&lt;/p&gt;
+&lt;/kendo-window&gt;
+
+&lt;b-row&gt;
+  &lt;b-col :cols="6"&gt;ซ้าย&lt;/b-col&gt;
+  &lt;b-col :cols="6"&gt;ขวา&lt;/b-col&gt;
+&lt;/b-row&gt;
+
+&lt;script&gt;
+methods: {
+  openDetail() {
+    this.$refs.myWindow.kendoWidget().center().open();
+  }
+}
+&lt;/script&gt;</code></pre>
+
+    <h2>2. Shared Vuex Store Modules (<code>src/app/store/shared/</code>)</h2>
+    <p>ทั้งหมดเป็น <code>namespaced: true</code> และใช้ pattern <code>make.getters/mutations/actions</code> ของ vuex-pathify (ดูบทที่ 07) โมดูลเหล่านี้ถูก auto-register ให้แล้ว ไม่ต้องเพิ่มเอง</p>
+    <table>
+      <thead><tr><th style="width:250px;">Module (ชื่อจริงตอน sync/get/set)</th><th>State สำคัญ</th><th>Action/Mutation พิเศษ</th></tr></thead>
+      <tbody>
+        <tr><td><code>Layout_Main</code></td><td><code>completedAuth</code>, <code>isLoginPage</code>, <code>tempSysDate</code>, <code>tempFiles[]</code>, <code>signatureHash</code>, <code>publicRoute</code></td><td><code>getSystemDate()</code>, <code>genReport(payload)</code> (export Excel)</td></tr>
+        <tr><td><code>Layout_Loading</code></td><td><code>loading</code> (ตัวนับ), <code>numLoading</code>, <code>messages[]</code>, <code>hideLoading</code></td><td>action <code>Loading()</code>/<code>Unloading()</code> — ถูกเรียกอัตโนมัติจาก axios interceptor ทุกครั้งที่มี request/response</td></tr>
+        <tr><td><code>Layout_MasterLayout</code></td><td><code>userInfo</code> (nameDisplay, deptDisplay), <code>menus[]</code>, <code>menuAuthorize[]</code>, <code>titleName</code>, <code>subTitleName</code></td><td><code>getUserInfo()</code>, mutation <code>setTitle(state, {titleName, subTitleName})</code> — ตัวที่ทุกหน้าจอเรียกใน <code>mounted()</code></td></tr>
+        <tr><td><code>Controls_Cell_CellHeaderCheckbox</code></td><td>(ว่าง — เตรียมไว้ใช้อนาคต)</td><td>&nbsp;</td></tr>
+        <tr><td><code>Controls_Cell_CellHeaderCheckboxDetail</code></td><td><code>chkHeads{}</code> (สถานะติ๊กถูกของแต่ละ detail row)</td><td>mutation <code>setChkHead(state, data)</code></td></tr>
+        <tr><td><code>Controls_Cell_CellUploadFile</code></td><td><code>originalRemoveUrl</code>, <code>removeUrl</code></td><td>mutation <code>updateRemoveUrl(state, key)</code> — ประกอบ URL สำหรับลบไฟล์</td></tr>
+        <tr><td><code>Controls_Grid_GridLazyLoad</code></td><td><code>payloadForSave</code>, <code>loading</code></td><td>action <code>loadData({commit, state}, options)</code> — ยิง GET/POST แล้วคืนผลให้ <code>GridLazyLoad</code></td></tr>
+        <tr><td><code>Controls_Modal_LoadingModal</code></td><td><code>messages[]</code></td><td>mutation <code>addMessage()</code>, <code>updateMessage()</code> (แทนที่ข้อความล่าสุด)</td></tr>
+        <tr><td><code>Controls_Modal_SearchModal</code></td><td><code>loading</code>, <code>search</code>, <code>listDropdownSearch[]</code></td><td>ไม่มี action/mutation พิเศษ ใช้แค่ auto-generate ของ pathify</td></tr>
+        <tr><td><code>Controls_ListView_ReportListView</code></td><td>(จัดการผ่าน action ล้วน)</td><td><code>printReport()</code>, <code>deleteReport()</code>, <code>deleteAllReports()</code>, <code>endProgress()</code></td></tr>
+        <tr><td><code>Controls_ListView_ReportDataListView</code></td><td>(จัดการผ่าน action ล้วน)</td><td><code>deleteReport()</code>, <code>deleteAllReports()</code>, <code>updateProgress()</code></td></tr>
+        <tr><td><code>Controls_Viewer_ARViewer</code></td><td><code>reportActionId</code>, <code>reportDataActionId</code></td><td>ใช้ track ว่ากำลังเปิดดูรายงานตัวไหนอยู่</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>ตัวอย่างการใช้งาน:</strong> อ่าน/เขียน store กลางเหล่านี้ผ่าน vuex-pathify เหมือน module อื่น ๆ ทุกประการ (ดูบทที่ 07)</p>
+    <pre><code>import { sync } from "vuex-pathify";
+
+export default {
+  computed: {
+    ...sync("Layout_MasterLayout/*")   // ได้ this.titleName, this.subTitleName ใช้ตรง ๆ
+  },
+  mounted() {
+    // ตั้งชื่อหัวข้อ/breadcrumb ของหน้าจอ — ทุกหน้าจอทำแบบนี้เหมือนกันหมด
+    this.$store.set("Layout_MasterLayout/setTitle", {
+      titleName: "ค้นหาลูกค้า",
+      subTitleName: "Demo > ค้นหาลูกค้า"
+    });
+
+    // เช็คว่า auth เสร็จหรือยังก่อนเรียก API
+    const completedAuth = this.$store.get("Layout_Main/completedAuth");
+    if (completedAuth) {
+      this.loadInitialData();
+    }
+
+    // ดูว่ามี loading ค้างอยู่กี่ request (ปกติไม่ต้องยุ่งเอง เพราะ interceptor จัดการให้)
+    const loadingCount = this.$store.get("Layout_Loading/loading");
+  }
+};</code></pre>
+
+    <h2>3. Shared Utilities (<code>this.$utils</code> / <code>this.$utilsCore</code>)</h2>
+    <p>
+      ตัวนี้เป็น singleton object ผูกไว้กับทุก component แล้ว (ดูบทที่ 06) เรียกได้ทันทีที่ <code>this.$utils.ชื่อฟังก์ชัน(...)</code>
+      ต่อไปนี้คือ method เกือบทั้งหมดที่มีอยู่ แบ่งตามหมวดการใช้งาน
+    </p>
+
+    <h3>3.1 ภาษา &amp; Routing</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>getLang()</code></td><td>คืนภาษาปัจจุบัน ('th' เป็นค่าเริ่มต้น)</td></tr>
+        <tr><td><code>setLang(lang, callback)</code></td><td>เปลี่ยนภาษา บันทึกลง storage และอัปเดต vue-i18n locale</td></tr>
+        <tr><td><code>routerPush(path)</code></td><td>เปลี่ยนหน้า — ถ้าอยู่ใน embed mode (มี vmMaster) จะส่งต่อให้แอปแม่จัดการแทน</td></tr>
+        <tr><td><code>getRoutePath()</code> / <code>getRoutePathNoParam()</code></td><td>คืน path ปัจจุบัน (แบบมี/ไม่มี query string)</td></tr>
+        <tr><td><code>routeFromModule(path, lv)</code></td><td>ตัดชื่อ module ออกจาก path เช่น <code>/Finance/xxx</code> → <code>Finance</code></td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>this.$utils.routerPush(`/Customer/Detail?code=${code}`);
+const currentPath = this.$utils.getRoutePathNoParam();     // path ไม่มี query
+const moduleName = this.$utils.routeFromModule(currentPath); // เช่น "Finance"</code></pre>
+
+    <h3>3.2 Storage &amp; Session</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>getStorage(key)</code> / <code>setStorage(key, value)</code> / <code>removeStorage(key)</code> / <code>clearStorage()</code></td><td>อ่าน/เขียน/ลบค่าที่เก็บไว้ฝั่ง client (แทน localStorage/sessionStorage ตรง ๆ)</td></tr>
+        <tr><td><code>getAuthStorage()</code></td><td>คืนข้อมูล user ที่ login (token, userId, nameDisplay, role ฯลฯ) ทั้งก้อน</td></tr>
+        <tr><td><code>removeAuthStorage()</code></td><td>ล้างข้อมูล login ทั้งหมด (ใช้ตอน logout)</td></tr>
+        <tr><td><code>getAppUrl()</code></td><td>คืน base URL ของแอป (รวม appName)</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>this.$utils.setStorage("lastViewedCustomer", customerCode);
+const lastCode = this.$utils.getStorage("lastViewedCustomer");
+
+const authInfo = this.$utils.getAuthStorage();
+console.log(authInfo.nameDisplay, authInfo.role);</code></pre>
+
+    <h3>3.3 System &amp; Authentication</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>initialSystem()</code></td><td>ดึงข้อมูล user เริ่มต้นตอนเปิดแอป (cache ไว้ถ้ามีแล้ว)</td></tr>
+        <tr><td><code>actionSignOut()</code></td><td>ออกจากระบบ: ล้าง auth storage, cookies, ปิด hub connections, reset store flags</td></tr>
+        <tr><td><code>actionSignOutAzure()</code></td><td>เหมือน <code>actionSignOut()</code> แต่ redirect ไปหน้า logout ของ Azure AD ด้วย</td></tr>
+        <tr><td><code>fetchSystemDate()</code> / <code>getSystemDate()</code> / <code>setCacheSystemDate(date)</code></td><td>ดึง/อ่าน/ตั้งค่า วันที่ของ server (ไม่ใช้วันที่เครื่อง client เพื่อกันเวลาเพี้ยน)</td></tr>
+        <tr><td><code>clearCookies()</code></td><td>ลบ cookie ทั้งหมดของ browser</td></tr>
+        <tr><td><code>registerKey()</code> / <code>decryptDataKey()</code></td><td>ตรวจสอบ/ถอดรหัส security key หลัง OAuth handshake (ใช้ภายในระบบ auth เอง ไม่ค่อยเรียกตรง ๆ จากหน้าจอทั่วไป)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.4 แปลง/จัดการข้อมูล (Data transform)</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>clone(data)</code></td><td>deep clone object/array (กัน reference ชนกัน)</td></tr>
+        <tr><td><code>filterClone(val, fnFilter)</code></td><td>clone แล้วกรองด้วยฟังก์ชันที่ส่งเข้าไป</td></tr>
+        <tr><td><code>trimJSON(json)</code></td><td>ตัดช่องว่างหน้า-หลังของทุก string ใน object/array แบบ recursive ก่อนส่ง API</td></tr>
+        <tr><td><code>cloneGridData(data)</code></td><td>clone array ของ grid แล้วลบ field ภายใน (<code>_uuid_</code>, <code>_ID</code>, <code>_editField_</code>, <code>flagSave</code>) ออกก่อนส่ง API จริง</td></tr>
+        <tr><td><code>cloneMatchProp(data, dataStructure)</code></td><td>clone เฉพาะ property ที่มีอยู่ใน <code>dataStructure</code> ต้นแบบ</td></tr>
+        <tr><td><code>objectAssignMatchProp(dataStructure, ...updates)</code></td><td>merge object โดยรับเฉพาะ key ที่มีอยู่ใน structure ต้นแบบเท่านั้น (กัน key แปลกปลอมหลุดเข้ามา)</td></tr>
+        <tr><td><code>updateGridData(dataFrom, dataTo)</code></td><td>merge แถว grid โดยรักษาสถานะ <code>flagSave</code> ('I' insert / 'U' update / 'D' delete) ให้ถูกต้อง</td></tr>
+        <tr><td><code>pick(obj, prop1, prop2, ...)</code></td><td>ดึงเฉพาะ property ที่ระบุออกมาเป็น object ใหม่</td></tr>
+        <tr><td><code>hookState(object, value)</code></td><td>ใส่ค่าลง object พร้อมแปะ <code>_id_</code> (uuid) ให้อัตโนมัติ</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>// สถานการณ์จริง: ก่อนส่ง API ให้ trim ข้อความ + ตัด field ภายในของ grid ออกก่อน
+onSave() {
+  const payload = this.$utils.trimJSON(this.$utils.clone(this.form));
+  const gridDataToSave = this.$utils.cloneGridData(this.gridItems); // ลบ _uuid_, _editField_, flagSave-ภายในออก
+
+  axios.financeApi.post("/Customer/Save", { ...payload, items: gridDataToSave })
+    .then(() => this.$utils.addNotify("บันทึกสำเร็จ", 200));
+}</code></pre>
+
+    <h3>3.5 วันที่ (<code>utils.date.*</code>)</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>toDateTh(date, showTime)</code></td><td>แปลงเป็นวันที่ไทย (พ.ศ., dd/MM/yyyy+543)</td></tr>
+        <tr><td><code>toDateEn(date, showTime)</code></td><td>แปลงเป็นวันที่ ค.ศ. (dd/MM/yyyy)</td></tr>
+        <tr><td><code>toDateBeautyTh(date, hasTime, hasSecond, isLongMonth, isLongYear)</code></td><td>วันที่แบบอ่านง่าย เช่น "1 มกราคม 2568 12:34:56"</td></tr>
+        <tr><td><code>getMonthNameTh(month)</code> / <code>getShortMonthNameTh(month)</code></td><td>ชื่อเดือนไทยเต็ม/ย่อ จากเลข 0-11</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>this.$utils.date.toDateTh(order.createdDate);              // "05/07/2569"
+this.$utils.date.toDateBeautyTh(order.createdDate, true);   // "5 กรกฎาคม 2569 14:30:00"</code></pre>
+
+    <h3>3.6 ตัวเลข (<code>utils.number.*</code>)</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>checkNumberDecimal(el, decimal)</code></td><td>บังคับให้ input แสดงผลตามจำนวนทศนิยมที่กำหนด</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.7 Path / String</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>lastPath(path)</code> / <code>beforeLastPath(path)</code></td><td>ตัด path แบบจุด เช่น <code>'a.b.c'</code> → <code>'c'</code> หรือ <code>'a.b'</code></td></tr>
+        <tr><td><code>combineUrl(...parts)</code></td><td>ต่อ URL หลายส่วนเข้าด้วยกันด้วย <code>/</code> โดยจัดการ slash ซ้ำ/ขาดให้อัตโนมัติ</td></tr>
+        <tr><td><code>getUrlParam(name)</code> / <code>getUrlParams(url)</code></td><td>อ่านค่า query string ทีละตัว หรือทั้งหมดเป็น object</td></tr>
+        <tr><td><code>fillTemplate(templateString, templateVars)</code></td><td>แทนค่าตัวแปรลงใน string template เช่น <code>"Hello ${name}"</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.8 แจ้งเตือน UI</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>addNotify(msg, status, hideAfter)</code></td><td>โชว์ toast แจ้งเตือนมุมจอ (status: 200 สำเร็จ, 400 เตือน, 500 error) — ใช้บ่อยที่สุดในทุกหน้าจอ</td></tr>
+        <tr><td><code>alertMsg(title, messages, status)</code></td><td>เปิด modal <code>AlertMessage</code> แบบเรียกผ่าน utils โดยตรง (ไม่ต้องมี <code>$refs</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>this.$utils.addNotify("บันทึกสำเร็จ", 200);                 // toast มุมจอ
+this.$utils.alertMsg("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบ", 400); // modal เต็มจอ ต้องกด OK</code></pre>
+
+    <h3>3.9 รายงาน / ไฟล์</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>genReport(payload)</code></td><td>สั่ง generate รายงาน (เข้าคิวผ่าน store <code>Layout_Main</code>)</td></tr>
+        <tr><td><code>download(url, param)</code></td><td>ดาวน์โหลดไฟล์จาก API พร้อมแนบ auth header และแกะชื่อไฟล์จาก response header ให้อัตโนมัติ</td></tr>
+        <tr><td><code>preview(url, payload)</code></td><td>เปิดไฟล์ (blob) ในแท็บใหม่เพื่อดูตัวอย่างโดยไม่ต้องดาวน์โหลด</td></tr>
+        <tr><td><code>Alfresco.Preview(nodeId)</code> / <code>Alfresco.Download(nodeId, fileName)</code> / <code>Alfresco.Iframe(nodeId, iframeId)</code></td><td>เปิดดู/ดาวน์โหลด/แสดงไฟล์จากระบบจัดเก็บเอกสาร Alfresco</td></tr>
+        <tr><td><code>fileToBase64(file)</code></td><td>แปลงไฟล์ที่เลือกจาก input เป็น base64 data URL</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>// ปุ่มดาวน์โหลดไฟล์แนบ
+onDownloadClick(fileId) {
+  this.$utils.download("/File/Download", { fileId });   // จัดการ header/ชื่อไฟล์ให้อัตโนมัติ
+},
+// ปุ่มดูตัวอย่างก่อนดาวน์โหลด
+onPreviewClick(reportPayload) {
+  this.$utils.preview("/Report/Preview", reportPayload); // เปิดแท็บใหม่แสดงไฟล์ทันที
+}</code></pre>
+
+    <h3>3.10 Validation</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>validationHtmlTagCode(val)</code></td><td>เช็คว่า string มี HTML tag แฝงอยู่หรือไม่ (กัน XSS พื้นฐานตอนพิมพ์ใน input) — ระบบเรียกอัตโนมัติกับทุก input/textarea อยู่แล้ว</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.11 ระบบภายใน / Security (รู้จักไว้ ไม่ค่อยเรียกเองตรง ๆ)</h3>
+    <table>
+      <thead><tr><th style="width:230px;">Method</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>getTypeName(obj)</code></td><td>คืนชื่อ constructor ของ object (debug ใช้ดูชนิดตัวแปร)</td></tr>
+        <tr><td><code>isLittleEndian()</code></td><td>เช็ค byte order ของเครื่อง (ใช้ประกอบการคำนวณ hash/fingerprint)</td></tr>
+        <tr><td><code>getAppKey()</code></td><td>สร้าง key สำหรับยืนยันตัวตนแอป (เข้ารหัสด้วย RC4)</td></tr>
+        <tr><td><code>hash(components, id)</code></td><td>สร้าง fingerprint hash ของเครื่อง user (ใช้ตอน sign-in เพื่อผูก session กับอุปกรณ์)</td></tr>
+        <tr><td><code>rc4(key, str)</code></td><td>เข้ารหัส/ถอดรหัสแบบ RC4 cipher</td></tr>
+        <tr><td><code>open(domain, path, name, param, options, userIdentity)</code></td><td>เปิดหน้าต่างลูกพร้อม auto sign-in (ส่ง key ผ่าน postMessage ระหว่างหน้าต่าง)</td></tr>
+        <tr><td><code>fnBeforeSendRequest(req)</code></td><td>ใช้เป็น <code>beforeSend</code> ของ <code>kendo-datasource</code> — แนบ header auth (token, AppKey, Lang) ให้อัตโนมัติ (ดูตัวอย่างใน <code>GridProxy</code> บทที่ 08)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout project">
+      <div class="callout-title">Method ที่ควรจำขึ้นใจ (ใช้บ่อยที่สุดในงานประจำวัน)</div>
+      <code>$utils.addNotify()</code>, <code>$utils.getStorage()</code>/<code>setStorage()</code>, <code>$utils.clone()</code>, <code>$utils.trimJSON()</code>,
+      <code>$utils.download()</code>, <code>$utils.toDateTh()</code>/<code>toDateBeautyTh()</code> — ที่เหลือส่วนใหญ่เป็นกลไกภายใน (auth, security, RC4) ที่ระบบเรียกให้เองอยู่แล้ว ไม่ต้องเรียกเองตรง ๆ
+    </div>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li>ก่อนเขียน cell editor ใหม่ในตาราง เช็คตาราง Cell/ ก่อนว่ามีแบบที่ต้องการหรือยัง (มีให้ครบ 17 แบบ)</li>
+      <li>ก่อนเขียน popup/dialog ใหม่ ใช้ <code>AlertMessage</code>, <code>SearchModal</code>, <code>PopupDynamic</code>, หรือ <code>kendo-window</code> (BaseWindow) ก่อนเสมอ</li>
+      <li>ต้องการ state ร่วมของ component พิเศษ (เช่น upload, checkbox header) เช็คว่ามี store กลางให้ใช้แล้วหรือยังในหมวด 2</li>
+      <li>เกือบทุกอย่างที่ "น่าจะมีคนทำไว้แล้ว" (format วันที่ไทย, download ไฟล์, clone ข้อมูล, trim string) จะอยู่ใน <code>this.$utils</code> เสมอ — ค้นก่อนเขียนเอง</li>
+    </ul>
+
+    <div class="pager">
+      <a href="09-hands-on.html"><span class="dir">← ก่อนหน้า</span>09. ลงมือทำจริง</a>
+      <a href="../index.html"><span class="dir">กลับ →</span>หน้าแรก</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

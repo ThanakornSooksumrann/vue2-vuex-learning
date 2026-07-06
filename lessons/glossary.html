@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คำศัพท์เฉพาะ (Glossary) — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html" class="active"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">อ้างอิง</div>
+    <h1>คำศัพท์เฉพาะ (Glossary)</h1>
+    <p class="lead">
+      รวมศัพท์เทคนิคทั้งหมดที่เจอในบทเรียน 01-09 อธิบายเป็นภาษาง่าย ๆ ไว้เปิดดูเวลาอ่านบทเรียนแล้วเจอคำที่ไม่คุ้น
+      แต่ละคำมีป้าย <span class="badge">บทที่ N</span> บอกว่าเจอครั้งแรกในบทไหน กดลิงก์บทนั้นเพื่อย้อนไปดูบริบทเต็ม ๆ ได้
+    </p>
+
+    <h2>1. ศัพท์พื้นฐานของ Vue.js</h2>
+    <table>
+      <thead><tr><th style="width:220px;">คำศัพท์</th><th>ความหมาย</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>Component</code></td>
+          <td>ชิ้นส่วน UI ที่ใช้ซ้ำได้ มี template + logic ของตัวเอง เปรียบเหมือน "เลโก้" ที่เอามาต่อกันเป็นหน้าเว็บ <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Vue instance</code></td>
+          <td>object ที่เกิดจาก <code>new Vue({...})</code> คือตัวแอปหรือ component ที่กำลังทำงานอยู่จริงในหน่วยความจำ <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Options API</code></td>
+          <td>วิธีเขียน Vue component แบบใส่ <code>data/methods/computed/watch</code> เป็น key ใน object เดียว (ตรงข้ามกับ Composition API ของ Vue 3 ที่เขียนแบบ function) — โปรเจกต์นี้ใช้ Options API ล้วน <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Template syntax</code></td>
+          <td>ภาษาพิเศษที่เขียนใน <code>&lt;template&gt;</code> เช่น <code>{{ }}</code>, <code>v-if</code>, <code>:src</code> เพื่อบอก Vue ว่าจะ render HTML ยังไงจาก data <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Directive</code></td>
+          <td>คำสั่งพิเศษที่ขึ้นต้นด้วย <code>v-</code> ใน template เช่น <code>v-if</code>, <code>v-for</code>, <code>v-model</code>, <code>v-show</code>, <code>v-bind</code>, <code>v-on</code> <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Reactivity (รีแอคทีฟ)</code></td>
+          <td>ความสามารถหลักของ Vue: พอ data เปลี่ยนค่า หน้าจอ (DOM) จะอัปเดตให้อัตโนมัติ โดยไม่ต้องเขียนโค้ดสั่ง update เอง <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Two-way binding</code></td>
+          <td>การผูกข้อมูลแบบ 2 ทาง — แก้ค่าใน input แล้ว data เปลี่ยนตาม, แก้ data แล้ว input ก็เปลี่ยนตาม ทำผ่าน <code>v-model</code> <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Computed property</code></td>
+          <td>ค่าที่คำนวณจาก data ตัวอื่น และถูก "จำ" (cache) ไว้ จะคำนวณใหม่ก็ต่อเมื่อ data ที่มันอ้างอิงเปลี่ยนเท่านั้น <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Watcher</code> (<code>watch</code>)</td>
+          <td>ตัวดักฟังว่า data/computed ตัวไหนเปลี่ยนค่า แล้วสั่งทำ side-effect เช่น เรียก API หรือเขียน log <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Props</code></td>
+          <td>ข้อมูลที่ parent component ส่ง "ลงมา" ให้ child component — child ห้ามแก้ props ตรง ๆ <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>$emit</code> / Event</td>
+          <td>วิธีที่ child component ส่งข้อมูล/แจ้งเหตุการณ์ "ขึ้นไป" หา parent — parent ดักฟังด้วย <code>@ชื่อ-event</code> <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>Slot</code></td>
+          <td>"ช่องว่าง" ใน child component ที่ให้ parent ใส่เนื้อหา (HTML/component อื่น) เข้าไปแทนได้ ถ้าตั้งชื่อเรียกว่า named slot <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>:key</code> (ใน v-for)</td>
+          <td>ค่าที่บอก Vue ว่าแต่ละ item ใน list ไหนคือ "ตัวเดิม" เวลาข้อมูลเปลี่ยน ช่วยให้ Vue อัปเดต DOM ได้แม่นยำและเร็วขึ้น ต้องใส่ทุกครั้งที่ใช้ <code>v-for</code> <span class="badge">บทที่ 01</span></td>
+        </tr>
+        <tr>
+          <td><code>DOM</code></td>
+          <td>Document Object Model คือโครงสร้าง HTML ที่เบราว์เซอร์ใช้แสดงผลหน้าเว็บจริง ๆ — Vue คอยจัดการ DOM แทนเราผ่าน reactivity <span class="badge">บทที่ 01</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>2. ศัพท์เรื่อง Lifecycle &amp; Asynchronous (การทำงานแบบรอผล)</h2>
+    <table>
+      <thead><tr><th style="width:220px;">คำศัพท์</th><th>ความหมาย</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>Lifecycle hook</code></td>
+          <td>ฟังก์ชันพิเศษที่ Vue เรียกให้เองตามช่วงอายุของ component เช่น <code>created</code>, <code>mounted</code>, <code>beforeDestroy</code> <span class="badge">บทที่ 02</span></td>
+        </tr>
+        <tr>
+          <td><code>$refs</code></td>
+          <td>วิธีอ้างอิงถึง DOM element หรือ component ลูกตรง ๆ จากโค้ด ใช้ได้ตั้งแต่ <code>mounted</code> เป็นต้นไปเท่านั้น (ก่อนหน้านั้นยังไม่มี DOM) <span class="badge">บทที่ 02</span></td>
+        </tr>
+        <tr>
+          <td><code>Polling</code></td>
+          <td>เทคนิคเรียก API ซ้ำ ๆ เป็นช่วงเวลา (เช่นทุก 5 วินาที) เพื่อเช็คข้อมูล/สถานะล่าสุด มักทำคู่กับ <code>setInterval</code> <span class="badge">บทที่ 02</span></td>
+        </tr>
+        <tr>
+          <td><code>Memory leak</code></td>
+          <td>บั๊กที่เกิดจากลืมเคลียร์ของ (เช่น <code>setInterval</code>, event listener) ตอน component ถูกทำลาย ทำให้โค้ดยังทำงานค้างอยู่เบื้องหลังทั้งที่ผู้ใช้ออกจากหน้าไปแล้ว <span class="badge">บทที่ 02</span></td>
+        </tr>
+        <tr>
+          <td><code>Promise</code></td>
+          <td>object ที่แทน "ผลลัพธ์ในอนาคต" ของงานที่ยังไม่เสร็จตอนนี้ (เช่นการเรียก API) มีสถานะ pending → resolved (สำเร็จ) หรือ rejected (ล้มเหลว) <span class="badge">บทที่ 02</span></td>
+        </tr>
+        <tr>
+          <td><code>async / await</code></td>
+          <td>syntax ที่ทำให้เขียนโค้ดที่ต้อง "รอผล" (asynchronous) ให้อ่านง่ายเหมือนโค้ดปกติ แทนที่จะต้องเขียน <code>.then()</code> ซ้อนกันหลายชั้น <span class="badge">บทที่ 02</span></td>
+        </tr>
+        <tr>
+          <td><code>try / catch / finally</code></td>
+          <td>โครงสร้างดักจับ error: <code>try</code> = โค้ดที่อาจพัง, <code>catch</code> = ทำเมื่อพัง, <code>finally</code> = ทำเสมอไม่ว่าจะสำเร็จหรือพัง (เช่นปิด loading) <span class="badge">บทที่ 02</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. ศัพท์เรื่อง Vue Router</h2>
+    <table>
+      <thead><tr><th style="width:220px;">คำศัพท์</th><th>ความหมาย</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>SPA</code> (Single Page Application)</td>
+          <td>เว็บแอปที่เปลี่ยน "หน้า" โดยไม่ reload browser ทั้งหน้า — ใช้ JavaScript สลับ component แทน <span class="badge">บทที่ 03</span></td>
+        </tr>
+        <tr>
+          <td><code>Route</code></td>
+          <td>การจับคู่ระหว่าง URL path กับ component ที่จะแสดง เช่น <code>/customer</code> → <code>Customer.vue</code> <span class="badge">บทที่ 03</span></td>
+        </tr>
+        <tr>
+          <td><code>&lt;router-view&gt;</code></td>
+          <td>"ช่อง" ในหน้า layout ที่ component ของ route ปัจจุบันจะไป render ใส่ <span class="badge">บทที่ 03</span></td>
+        </tr>
+        <tr>
+          <td><code>&lt;router-link&gt;</code></td>
+          <td>tag ที่ใช้แทน <code>&lt;a&gt;</code> เพื่อเปลี่ยนหน้าแบบ SPA (ไม่ reload browser) <span class="badge">บทที่ 03</span></td>
+        </tr>
+        <tr>
+          <td><code>history mode</code> / <code>hash mode</code></td>
+          <td>รูปแบบ URL ของ SPA — history mode ได้ URL สวย (<code>/customer</code>) แต่ต้องตั้งค่า server รองรับ, hash mode มี <code>#</code> คั่น (<code>/#/customer</code>) ใช้ได้แม้เปิดไฟล์ static ตรง ๆ <span class="badge">บทที่ 03</span></td>
+        </tr>
+        <tr>
+          <td><code>Navigation guard</code></td>
+          <td>ฟังก์ชันที่ดักทำงานก่อน/หลังเปลี่ยนหน้า เช่น <code>beforeEach</code>, <code>afterEach</code> ใช้เช็คสิทธิ์เข้าหน้า หรือทำ cleanup <span class="badge">บทที่ 03</span></td>
+        </tr>
+        <tr>
+          <td><code>Dynamic params</code></td>
+          <td>ส่วนของ path ที่เปลี่ยนได้ เช่น <code>/customer/:id</code> อ่านค่าได้จาก <code>this.$route.params.id</code> <span class="badge">บทที่ 03</span></td>
+        </tr>
+        <tr>
+          <td><code>Query string</code></td>
+          <td>ส่วนต่อท้าย URL หลัง <code>?</code> เช่น <code>?mode=Inquiry</code> อ่านค่าได้จาก <code>this.$route.query.mode</code> <span class="badge">บทที่ 03</span></td>
+        </tr>
+        <tr>
+          <td><code>Lazy loading</code> / <code>Dynamic import</code></td>
+          <td>การโหลด component เฉพาะตอนที่ผู้ใช้เข้า route นั้นจริง ๆ (เขียนด้วย <code>() =&gt; import(...)</code>) แทนที่จะโหลดทุกหน้าตั้งแต่แรก ทำให้แอปโหลดเร็วขึ้น <span class="badge">บทที่ 03</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>4. ศัพท์เรื่อง Vuex (State Management)</h2>
+    <table>
+      <thead><tr><th style="width:220px;">คำศัพท์</th><th>ความหมาย</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>State</code></td>
+          <td>ข้อมูลกลางที่เก็บไว้ใน store ให้ทุก component เข้าถึงได้ (เหมือน <code>data</code> แต่ใช้ร่วมกันทั้งแอป) <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>Getter</code></td>
+          <td>เหมือน <code>computed</code> แต่ใช้ร่วมกันได้ทั้งแอป อ่านค่าที่คำนวณจาก state <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>Mutation</code></td>
+          <td>ฟังก์ชันเดียวที่อนุญาตให้แก้ state ได้ตรง ๆ ต้องเป็น synchronous เท่านั้น (ห้ามมี await/API เรียกอยู่ข้างใน) <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>Action</code></td>
+          <td>ฟังก์ชันที่ทำ logic/เรียก API แบบ async ได้ แล้วค่อย <code>commit</code> mutation เพื่อเปลี่ยน state จริง <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>commit</code></td>
+          <td>คำสั่งเรียก mutation เช่น <code>this.$store.commit('INCREMENT')</code> <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>dispatch</code></td>
+          <td>คำสั่งเรียก action เช่น <code>this.$store.dispatch('fetchProfile')</code> — component ควรเรียก action ผ่าน dispatch เสมอเวลามี async <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>Module</code> / <code>namespaced</code></td>
+          <td>การแยก store ก้อนใหญ่เป็นส่วนย่อยตามฟีเจอร์ <code>namespaced: true</code> ทำให้ต้องเรียกผ่าน path เต็ม (เช่น <code>user/fetchProfile</code>) กันชื่อชนกับ module อื่น <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>CRUD</code></td>
+          <td>ย่อจาก Create-Read-Update-Delete คือ 4 การกระทำพื้นฐานกับข้อมูล (เพิ่ม/อ่าน/แก้/ลบ) <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>vuex-pathify</code></td>
+          <td>library เสริมของ Vuex ที่ auto-generate mutation/action พื้นฐานให้ และมี syntax สั้น ๆ อย่าง <code>sync()</code>, <code>$store.get()</code>, <code>$store.set()</code> — โปรเจกต์นี้ใช้ตัวนี้แทน mapState/mapActions มาตรฐาน <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td><code>sync()</code></td>
+          <td>helper ของ pathify ที่ผูก state เป็น computed (อ่าน+เขียนได้) ในบรรทัดเดียว เช่น <code>...sync('user/profile')</code> <span class="badge">บทที่ 04</span></td>
+        </tr>
+        <tr>
+          <td>เครื่องหมาย <code>!</code> ต่อท้าย (pathify)</td>
+          <td>convention ของ pathify ที่บอกว่ากำลังเรียก action (dispatch) ไม่ใช่ set ค่า state ตรง ๆ เช่น <code>$store.set('Module/doSomething!', payload)</code> <span class="badge">บทที่ 04</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>5. ศัพท์เรื่อง Kendo UI / UI Library ทั่วไป</h2>
+    <table>
+      <thead><tr><th style="width:220px;">คำศัพท์</th><th>ความหมาย</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>Widget</code></td>
+          <td>ชื่อเรียก UI component ของ Kendo (เช่น Grid widget, DatePicker widget) — มาจากยุค jQuery ก่อนที่จะมี Vue wrapper ครอบ <span class="badge">บทที่ 05</span></td>
+        </tr>
+        <tr>
+          <td><code>Wrapper</code></td>
+          <td>โค้ดที่ครอบของเดิม (เช่น Kendo widget แบบ jQuery) ให้ใช้งานแบบ Vue component ได้ (ผ่าน props/events ปกติของ Vue) <span class="badge">บทที่ 05</span></td>
+        </tr>
+        <tr>
+          <td><code>Installer</code> (เช่น <code>GridInstaller</code>)</td>
+          <td>plugin ของ Kendo ที่เรียกผ่าน <code>Vue.use(...)</code> เพื่อลงทะเบียน component ชุดนั้นให้ใช้ได้ทั้งแอป <span class="badge">บทที่ 05</span></td>
+        </tr>
+        <tr>
+          <td><code>DataSource</code></td>
+          <td>ตัวกลางของ Kendo ที่จัดการการดึงข้อมูล (paging/filter/sort) ให้ Grid หรือ widget อื่น ๆ <span class="badge">บทที่ 05</span></td>
+        </tr>
+        <tr>
+          <td>Server-side paging / filtering / sorting</td>
+          <td>การแบ่งหน้า/กรอง/เรียงข้อมูล ทำที่ฝั่ง server (backend) แล้วส่งกลับมาแค่หน้าที่ต้องการ แทนที่จะโหลดข้อมูลทั้งหมดมากรองที่ browser <span class="badge">บทที่ 05</span></td>
+        </tr>
+        <tr>
+          <td><code>kendoWidget()</code></td>
+          <td>method ที่เรียกผ่าน <code>this.$refs.xxx.kendoWidget()</code> เพื่อเข้าถึง Kendo widget object ตรง ๆ เวลา props/events ของ Vue wrapper ไม่พอ <span class="badge">บทที่ 05</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>6. ศัพท์เฉพาะของโปรเจกต์ KL.Core.UI</h2>
+    <table>
+      <thead><tr><th style="width:220px;">คำศัพท์</th><th>ความหมาย</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>Entry point</code></td>
+          <td>ไฟล์แรกที่ webpack เริ่มรันตอนโหลดแอป ของโปรเจกต์นี้คือ <code>src/main.js</code> <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>Mixin</code></td>
+          <td>ก้อน logic (data/methods/lifecycle) ที่ผสมเข้ากับทุก component โดยอัตโนมัติ — โปรเจกต์นี้ใช้ <code>Vue.mixin({...})</code> ใน <code>CreateVueInstance.js</code> เพื่อแจก method กลาง (เช่น upload, hub connection) ให้ทุก component ใช้ได้เลย <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>Prototype property</code></td>
+          <td>การเติม property เข้าไปที่ต้นแบบของ Vue (<code>Vue.prototype</code>) ทำให้ทุก component เรียกใช้ได้ผ่าน <code>this.xxx</code> เช่น <code>this.$utils</code> <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>Singleton</code></td>
+          <td>รูปแบบที่มี instance เดียวใช้ร่วมกันทั้งระบบ ไม่สร้างใหม่ซ้ำ ๆ เช่น <code>$utils</code> ที่เป็น utility ตัวเดียวกันไม่ว่าจะเรียกจาก component ไหน <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>Polyfill</code></td>
+          <td>โค้ดที่เติมความสามารถของ JavaScript รุ่นใหม่ให้ browser รุ่นเก่าใช้งานได้ (โปรเจกต์นี้ import <code>babel-polyfill</code> ไว้ที่บรรทัดแรกของ <code>main.js</code>) <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>Webpack alias</code></td>
+          <td>ชื่อย่อที่ตั้งไว้ใน webpack config แทน path ยาว ๆ เช่น <code>faco.core@shared</code> แทน <code>src/app/shared</code> ทำให้ import สั้นและไม่พังตอนย้ายไฟล์ <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>vmMaster</code> / Multi-instance</td>
+          <td>รูปแบบที่ Vue instance หนึ่งถูกฝังอยู่ในอีก instance หนึ่ง (แอปลูกในแอปแม่) — เช็คได้จาก <code>this.$root.vmMaster</code> <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>$configCore</code></td>
+          <td>ตัวแปร config ระดับ global (ไม่ใช่ของ Vue) เก็บค่าต่อ environment เช่น URL ของแต่ละ API, ชื่อแอป <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>SCOPE_MODULE</code></td>
+          <td>ตัวแปร environment ที่ใช้ตอนรัน dev server เพื่อจำกัดว่าจะ build เฉพาะ module ไหน (เช่น Finance, HPAdmin) ลดเวลา build ตอน dev <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>SignalR</code> / Hub connection</td>
+          <td>เทคโนโลยี real-time ของ Microsoft ใช้เปิดการเชื่อมต่อค้างไว้ (WebSocket) ระหว่าง browser กับ server เพื่อรับข้อมูล/แจ้งเตือนแบบสด ๆ โดยไม่ต้อง refresh <span class="badge">บทที่ 06</span></td>
+        </tr>
+        <tr>
+          <td><code>require.context</code></td>
+          <td>ฟังก์ชันพิเศษของ Webpack ที่สแกนหาไฟล์ทั้งหมดในโฟลเดอร์ตาม pattern ที่กำหนด แล้ว import ให้อัตโนมัติ — กลไกหลักที่ทำให้ route และ Vuex module ของโปรเจกต์นี้ "auto-register" เอง <span class="badge">บทที่ 07</span></td>
+        </tr>
+        <tr>
+          <td><code>Auto-register / Auto-generate</code></td>
+          <td>คำเรียกกลไกที่ route หรือ Vuex module ถูกสร้างขึ้นเองจากตำแหน่งไฟล์ในโฟลเดอร์ โดยไม่ต้องเขียนโค้ดเพิ่ม/แก้ที่ไหนอีก <span class="badge">บทที่ 07</span></td>
+        </tr>
+        <tr>
+          <td><code>make.getters/mutations/actions</code></td>
+          <td>helper ของ vuex-pathify ที่สร้าง getter/mutation/action พื้นฐานให้ทุก property ใน state โดยอัตโนมัติ ไม่ต้องเขียนเอง <span class="badge">บทที่ 07</span></td>
+        </tr>
+        <tr>
+          <td><code>Interceptor</code></td>
+          <td>โค้ดที่ "ดัก" ทุก request/response ของ axios ก่อนส่ง/หลังได้รับ เพื่อทำอะไรบางอย่างอัตโนมัติ เช่น แนบ token, เปิด/ปิด loading modal, จัดการ error กลาง ๆ <span class="badge">บทที่ 08</span></td>
+        </tr>
+        <tr>
+          <td><code>Repository pattern</code></td>
+          <td>รูปแบบที่รวมการเรียก API ทั้งหมดไว้ที่ไฟล์เดียว (<code>repository.js</code>) แทนที่จะกระจาย import axios ไปทั่วโปรเจกต์ <span class="badge">บทที่ 08</span></td>
+        </tr>
+        <tr>
+          <td><code>Cell component / Cell editor</code></td>
+          <td>component เล็ก ๆ ที่ใช้เป็น template ของแต่ละคอลัมน์ใน Grid เมื่อคอลัมน์นั้นต้องการ input พิเศษ (ไม่ใช่ text ธรรมดา) เช่น dropdown, date picker <span class="badge">บทที่ 08</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <div class="callout-title">เจอศัพท์ที่ไม่มีในตารางนี้?</div>
+      ถ้าเจอคำศัพท์ในโค้ดจริงที่ไม่ได้อธิบายไว้ที่นี่ ลองเปิดบทเรียนที่เกี่ยวข้องดูก่อน (เช่นคำเกี่ยวกับ Grid ให้ดูบทที่ 05/08)
+      หรือค้นหาชื่อ package นั้นใน <code>package.json</code> ของโปรเจกต์เพื่อดูว่าเป็น library อะไร แล้วค้นเพิ่มได้จากเอกสารทางการของ library นั้น ๆ
+    </div>
+
+    <div class="pager">
+      <a href="../index.html"><span class="dir">← กลับ</span>หน้าแรก</a>
+      <a href="01-vue-basics.html"><span class="dir">เริ่มเรียน →</span>01. Vue.js พื้นฐาน</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

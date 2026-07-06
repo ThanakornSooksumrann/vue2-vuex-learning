@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 · Vuex — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuex@3.6.2/dist/vuex.js"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html" class="active"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 1 · พื้นฐาน 04/05</div>
+    <h1>Vuex — State Management</h1>
+    <p class="lead">
+      ปัญหา: ถ้า 2 component ที่ไม่ใช่ parent-child กัน (เช่นอยู่คนละหน้า) ต้องใช้ข้อมูลร่วมกัน (เช่น ข้อมูล user ที่ login, ข้อมูลตะกร้าสินค้า)
+      การส่งผ่าน props/emit จะยุ่งยากมาก <strong>Vuex คือ "คลังข้อมูลกลาง"</strong> ที่ทุก component เข้าถึงได้โดยตรง
+      โปรเจกต์นี้ใช้ <strong>Vuex 3</strong> (คู่กับ Vue 2) ร่วมกับ library เสริมชื่อ <strong>vuex-pathify</strong> ที่ทำให้เขียนสั้นลง (แนะนำท้ายบทนี้ รายละเอียดเต็มบทที่ 07)
+    </p>
+
+    <h2>1. 4 ส่วนหลักของ Vuex</h2>
+    <div class="grid-cards">
+      <div class="card">
+        <div class="card-num">ข้อมูล</div>
+        <h4>State</h4>
+        <p>ตัวแปรกลางที่ทุก component อ่านได้ เหมือน <code>data</code> ของแอปทั้งแอป</p>
+      </div>
+      <div class="card">
+        <div class="card-num">อ่านแบบคำนวณ</div>
+        <h4>Getters</h4>
+        <p>เหมือน <code>computed</code> แต่ใช้ร่วมกันได้ทั้งแอป (เช่น กรอง/รวมยอด state)</p>
+      </div>
+      <div class="card">
+        <div class="card-num">แก้ข้อมูล (sync)</div>
+        <h4>Mutations</h4>
+        <p>ฟังก์ชัน<strong>เดียว</strong>ที่อนุญาตให้แก้ state ได้ตรง ๆ ต้องเป็น synchronous เท่านั้น</p>
+      </div>
+      <div class="card">
+        <div class="card-num">Logic + async</div>
+        <h4>Actions</h4>
+        <p>เรียก API ได้ (async) แล้วค่อย <code>commit</code> mutation เพื่อเปลี่ยน state จริง</p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-title">ทำไมต้องแยก mutation กับ action?</div>
+      กฎ: <strong>Component ห้าม commit mutation ตรง ๆ ที่มี async ปนอยู่</strong> — component จะเรียก <code>dispatch(action)</code> เท่านั้น
+      action ไปเรียก API (รอผลลัพธ์) แล้วค่อย <code>commit(mutation)</code> เพื่อเปลี่ยนค่าจริงแบบ synchronous
+      กฎนี้ทำให้ debug ง่าย: ทุกการเปลี่ยน state จะสืบย้อนได้ว่ามาจาก mutation ตัวไหน
+    </div>
+
+    <pre><code>import Vue from 'vue';
+import Vuex from 'vuex';
+Vue.use(Vuex);
+
+const store = new Vuex.Store({
+  state: {
+    count: 0
+  },
+  getters: {
+    doubleCount(state) {
+      return state.count * 2;
+    }
+  },
+  mutations: {
+    INCREMENT(state, amount) {
+      state.count += amount;   // แก้ state ตรง ๆ ได้เฉพาะใน mutation เท่านั้น
+    }
+  },
+  actions: {
+    incrementAsync({ commit }, amount) {
+      return new Promise(resolve => {
+        setTimeout(() => {              // จำลองการเรียก API
+          commit('INCREMENT', amount);
+          resolve();
+        }, 500);
+      });
+    }
+  }
+});
+
+// ใช้งานใน component
+this.$store.state.count            // อ่านค่าตรง ๆ
+this.$store.getters.doubleCount    // อ่าน getter
+this.$store.commit('INCREMENT', 1) // เรียก mutation ตรง ๆ (ใช้กับ sync เท่านั้น)
+this.$store.dispatch('incrementAsync', 5) // เรียก action (รองรับ async)</code></pre>
+
+    <div class="playground">
+      <div class="pg-label">ตัวอย่างสด: state / getters / mutations / actions <span class="live">● LIVE</span></div>
+      <div class="pg-body">
+        <div id="demo-vuex">
+          <p>count: <strong>{{ $store.state.count }}</strong> &nbsp;|&nbsp; doubleCount (getter): <strong>{{ $store.getters.doubleCount }}</strong></p>
+          <button @click="$store.commit('INCREMENT', 1)">+1 (commit mutation ตรง ๆ)</button>
+          <button @click="incrementAsync" :disabled="loading" style="margin-left:8px;">
+            {{ loading ? 'กำลังโหลด...' : '+5 แบบ async (dispatch action)' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <h2>2. Modules — แยกร้านค้าออกจากกันเมื่อแอปใหญ่ขึ้น</h2>
+    <p>
+      แอปใหญ่มี state เยอะมาก ถ้าเก็บไว้ก้อนเดียวจะดูแลยาก จึงแยกเป็น <strong>module</strong> ย่อยตามฟีเจอร์/หน้าจอ
+      และควรเปิด <code>namespaced: true</code> เสมอ เพื่อกันชื่อ action/mutation ชนกันข้าม module
+    </p>
+    <pre><code>// store/modules/user.js
+export default {
+  namespaced: true,           // สำคัญมาก! ถ้าไม่เปิด ชื่อ action จะไปปนกับ module อื่น
+  state: () => ({
+    profile: null
+  }),
+  getters: {
+    displayName: (state) => state.profile ? state.profile.name : 'Guest'
+  },
+  mutations: {
+    SET_PROFILE(state, profile) { state.profile = profile; }
+  },
+  actions: {
+    async fetchProfile({ commit }, userId) {
+      const res = await api.get(`/users/${userId}`);
+      commit('SET_PROFILE', res.data);
+    }
+  }
+};
+
+// store/index.js
+import user from './modules/user';
+export default new Vuex.Store({
+  modules: { user }
+});
+
+// ใช้งานใน component (ต้องใส่ path ของ module นำหน้าเสมอ)
+this.$store.state.user.profile
+this.$store.getters['user/displayName']
+this.$store.dispatch('user/fetchProfile', 123)</code></pre>
+
+    <div class="callout project">
+      <div class="callout-title">แบบที่โปรเจกต์นี้ใช้จริง</div>
+      โปรเจกต์นี้มี Vuex module เป็น<strong>หลายร้อยตัว</strong> (แทบจะ 1 module ต่อ 1 หน้าจอ/component ย่อย) ทุก module เปิด <code>namespaced: true</code> เสมอ
+      และ<strong>ไม่ได้เขียน import module ทีละไฟล์เอง</strong> แต่ใช้ Webpack <code>require.context</code> ไล่โหลดไฟล์ทุกไฟล์ในโฟลเดอร์ <code>store/shared</code> และ <code>store/views</code> อัตโนมัติ
+      แล้วตั้งชื่อ module จาก path ของไฟล์ เช่น <code>src/app/store/shared/Layout/Stores/Main.js</code> → module ชื่อ <code>Layout_Main</code> (รายละเอียดเต็ม ๆ บทที่ 07)
+    </div>
+
+    <h2>3. ตัวอย่างจริง: module ที่คุยกับ API จริง (loading / error / CRUD)</h2>
+    <p>
+      ของจริงในงานแทบทุกวันไม่ใช่ตัวนับเลข แต่เป็น "โหลดลิสต์ข้อมูลจาก API, เพิ่ม/ลบรายการ, มี loading ตอนรอ และมี error ตอนพัง"
+      ตัวอย่างนี้คือ Vuex module ของ "รายการสิ่งที่ต้องทำ" (todos) แบบที่ต้องเขียนใช้งานจริง ครบทั้ง loading state, error handling, และ action ที่ต้อง await ผลลัพธ์ก่อนค่อยไปทำ step ถัดไป
+    </p>
+    <pre><code>// store/modules/todos.js
+export default {
+  namespaced: true,
+  state: () => ({
+    items: [],
+    loading: false,
+    error: ""
+  }),
+  getters: {
+    doneCount: (state) => state.items.filter(t => t.done).length
+  },
+  mutations: {
+    SET_LOADING(state, val) { state.loading = val; },
+    SET_ERROR(state, msg) { state.error = msg; },
+    SET_ITEMS(state, items) { state.items = items; },
+    ADD_ITEM(state, item) { state.items.push(item); },
+    REMOVE_ITEM(state, id) { state.items = state.items.filter(t => t.id !== id); },
+    TOGGLE_ITEM(state, id) {
+      const item = state.items.find(t => t.id === id);
+      if (item) item.done = !item.done;
+    }
+  },
+  actions: {
+    // โหลดข้อมูลจาก API — เรียกตอน created() ของหน้าจอ
+    async fetchTodos({ commit }) {
+      commit('SET_LOADING', true);
+      commit('SET_ERROR', '');
+      try {
+        const res = await axios.get('/api/todos');
+        commit('SET_ITEMS', res.data);
+      } catch (err) {
+        commit('SET_ERROR', 'โหลดรายการไม่สำเร็จ');
+      } finally {
+        commit('SET_LOADING', false);
+      }
+    },
+    // เพิ่มรายการ — เรียก API แล้วค่อย commit ถ้าสำเร็จเท่านั้น (ไม่ commit มั่วก่อนรู้ผล)
+    async addTodo({ commit }, text) {
+      if (!text.trim()) {
+        commit('SET_ERROR', 'กรุณากรอกข้อความก่อนเพิ่มรายการ');
+        return false;
+      }
+      try {
+        const res = await axios.post('/api/todos', { text });
+        commit('ADD_ITEM', res.data);   // ใช้ข้อมูลที่ server ส่งกลับมา (มี id จริงจาก DB)
+        return true;
+      } catch (err) {
+        commit('SET_ERROR', 'เพิ่มรายการไม่สำเร็จ');
+        return false;
+      }
+    },
+    async removeTodo({ commit }, id) {
+      await axios.delete(`/api/todos/${id}`);
+      commit('REMOVE_ITEM', id);
+    }
+  }
+};</code></pre>
+
+    <p>ใช้งานจาก component จริง — สังเกตว่า component <strong>ไม่ยุ่งกับ axios โดยตรงเลย</strong> รู้แค่ว่า "dispatch action แล้วรอผล" ส่วนจะเรียก API ยังไง, error format แบบไหน ปล่อยให้ module จัดการทั้งหมด:</p>
+    <pre><code>export default {
+  computed: {
+    ...mapState('todos', ['items', 'loading', 'error']),
+    ...mapGetters('todos', ['doneCount'])
+  },
+  methods: {
+    ...mapActions('todos', ['fetchTodos', 'addTodo', 'removeTodo']),
+    async onAddClick() {
+      const ok = await this.addTodo(this.newText);   // action คืนค่า true/false บอกผลลัพธ์
+      if (ok) this.newText = "";                       // เคลียร์ช่อง input เฉพาะตอนสำเร็จ
+    }
+  },
+  created() {
+    this.fetchTodos();   // โหลดข้อมูลตั้งแต่เปิดหน้า (ดูบทที่ 02 เรื่อง lifecycle)
+  }
+};</code></pre>
+
+    <div class="playground">
+      <div class="pg-label">ตัวอย่างสด: fetch / add / remove ผ่าน Vuex action จริง (จำลอง API ด้วย setTimeout) <span class="live">● LIVE</span></div>
+      <div class="pg-body">
+        <div id="demo-todos">
+          <p v-if="loading" style="color:var(--text-dim)">กำลังโหลดรายการ...</p>
+          <template v-else>
+            <p v-if="error" style="color:var(--danger, #ef5350)">{{ error }}</p>
+            <ul style="padding-left:0; list-style:none;">
+              <li v-for="item in items" :key="item.id" style="display:flex; align-items:center; gap:8px; padding:4px 0;">
+                <span @click="toggle(item.id)" :style="{textDecoration: item.done ? 'line-through' : 'none', cursor:'pointer', color: item.done ? 'var(--text-dim)' : 'inherit'}">{{ item.text }}</span>
+                <button @click="remove(item.id)" style="margin-left:auto;">ลบ</button>
+              </li>
+            </ul>
+            <p style="color:var(--text-dim); font-size:0.85rem;">เสร็จแล้ว {{ doneCount }} / {{ items.length }} รายการ</p>
+          </template>
+          <div style="margin-top:10px;">
+            <input v-model="newText" placeholder="เพิ่มรายการใหม่..." @keyup.enter="onAddClick" />
+            <button class="primary" @click="onAddClick" :disabled="adding" style="margin-left:6px;">{{ adding ? 'กำลังเพิ่ม...' : 'เพิ่ม' }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout tip">
+      <div class="callout-title">ลองดู error handling จริง</div>
+      กดปุ่ม "เพิ่ม" โดยไม่พิมพ์อะไรเลย — action <code>addTodo</code> จะ commit error message ออกมาให้เห็นทันที (จำลองเคส validate ฝั่ง client ก่อนยิง API จริง)
+    </div>
+
+    <h2>4. mapState / mapGetters / mapMutations / mapActions — ทางลัดใน component</h2>
+    <pre><code>import { mapState, mapGetters, mapActions } from 'vuex';
+
+export default {
+  computed: {
+    ...mapState('user', ['profile']),          // = this.$store.state.user.profile
+    ...mapGetters('user', ['displayName'])     // = this.$store.getters['user/displayName']
+  },
+  methods: {
+    ...mapActions('user', ['fetchProfile'])    // this.fetchProfile(123) แทน dispatch เต็ม ๆ
+  },
+  created() {
+    this.fetchProfile(123);
+  }
+};</code></pre>
+
+    <div class="callout vuex">
+      <div class="callout-title">โปรเจกต์นี้ไม่ได้ใช้ mapState/mapActions แบบมาตรฐาน — ใช้ vuex-pathify แทน</div>
+      <code>vuex-pathify</code> คือ library ที่ทำให้เขียนสั้นลงไปอีก โดยจะ<strong>generate mutation/action พื้นฐานให้อัตโนมัติ</strong> (get/set ของทุก property)
+      และมี helper <code>sync()</code> ที่รวม getter+setter ให้ในบรรทัดเดียว:
+      <pre style="margin:10px 0 0;"><code>import { sync } from 'vuex-pathify';
+export default {
+  computed: {
+    ...sync('user/profile'),          // อ่าน + เขียนได้เลย เหมือน v-model ตรง ๆ กับ store
+    ...sync('user/*')                 // sync ทุก property ใน module เดียว
+  },
+  methods: {
+    save() {
+      this.$store.set('user/fetchProfile!', 123);  // สังเกต '!' ต่อท้าย = เรียก action ไม่ใช่ set ค่าตรง ๆ
+      let value = this.$store.get('user/profile');  // อ่านค่าตรง ๆ แบบ path string
+    }
+  }
+};</code></pre>
+      เครื่องหมาย <code>!</code> ต่อท้ายชื่อคือ convention ของ pathify ที่บอกว่า "นี่คือ action ให้ dispatch นะ ไม่ใช่ mutation ให้ set ค่าตรง ๆ"
+      จำ syntax นี้ให้ขึ้นใจเพราะจะเจอในทุกไฟล์ของโปรเจกต์นี้ — รายละเอียดเต็มอยู่บทที่ 07
+    </div>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li>State = ข้อมูลกลาง, Getters = computed กลาง, Mutations = จุดเดียวที่แก้ state ได้ (sync เท่านั้น), Actions = logic/async แล้วค่อย commit</li>
+      <li>Component เรียก <code>dispatch(action)</code> ไม่ commit mutation ตรง ๆ เวลามี async</li>
+      <li>ใช้ <code>modules</code> + <code>namespaced: true</code> เมื่อแอปใหญ่ขึ้น เพื่อกันชื่อชนกัน</li>
+      <li>โปรเจกต์นี้ใช้ <strong>vuex-pathify</strong> เป็นตัวช่วยเขียนสั้นลง ผ่าน <code>sync()</code>, <code>$store.get()</code>, <code>$store.set()</code> และ action ต้องมี <code>!</code> ต่อท้าย</li>
+    </ul>
+
+    <div class="pager">
+      <a href="03-router.html"><span class="dir">← ก่อนหน้า</span>03. Vue Router</a>
+      <a href="05-kendo-ui.html"><span class="dir">ถัดไป →</span>05. Kendo UI for Vue</a>
+    </div>
+  </main>
+</div>
+
+<script>
+const store = new Vuex.Store({
+  state: { count: 0 },
+  getters: {
+    doubleCount(state) { return state.count * 2; }
+  },
+  mutations: {
+    INCREMENT(state, amount) { state.count += amount; }
+  },
+  actions: {
+    incrementAsync({ commit }, amount) {
+      return new Promise(resolve => {
+        setTimeout(() => { commit('INCREMENT', amount); resolve(); }, 600);
+      });
+    }
+  }
+});
+
+new Vue({
+  el: '#demo-vuex',
+  store,
+  data() { return { loading: false }; },
+  methods: {
+    incrementAsync() {
+      this.loading = true;
+      this.$store.dispatch('incrementAsync', 5).then(() => {
+        this.loading = false;
+      });
+    }
+  }
+});
+
+// ---- ตัวอย่างจริง: todos module (fetch/add/remove ผ่าน action, จำลอง API ด้วย setTimeout) ----
+const fakeDb = {
+  items: [
+    { id: 1, text: "อ่านบทเรียน Vuex", done: false },
+    { id: 2, text: "ลองแก้ไข state ในหน้านี้", done: true }
+  ],
+  nextId: 3
+};
+
+const axios = {
+  get() {
+    return new Promise(resolve => setTimeout(() => resolve({ data: fakeDb.items.map(i => ({ ...i })) }), 600));
+  },
+  post(url, payload) {
+    return new Promise(resolve => setTimeout(() => {
+      const item = { id: fakeDb.nextId++, text: payload.text, done: false };
+      fakeDb.items.push(item);
+      resolve({ data: item });
+    }, 500));
+  },
+  delete(url) {
+    return new Promise(resolve => setTimeout(() => {
+      const id = Number(url.split('/').pop());
+      fakeDb.items = fakeDb.items.filter(t => t.id !== id);
+      resolve();
+    }, 400));
+  }
+};
+
+const todosModule = {
+  namespaced: true,
+  state: () => ({ items: [], loading: false, error: "" }),
+  getters: {
+    doneCount: (state) => state.items.filter(t => t.done).length
+  },
+  mutations: {
+    SET_LOADING(state, val) { state.loading = val; },
+    SET_ERROR(state, msg) { state.error = msg; },
+    SET_ITEMS(state, items) { state.items = items; },
+    ADD_ITEM(state, item) { state.items.push(item); },
+    REMOVE_ITEM(state, id) { state.items = state.items.filter(t => t.id !== id); },
+    TOGGLE_ITEM(state, id) {
+      const item = state.items.find(t => t.id === id);
+      if (item) item.done = !item.done;
+    }
+  },
+  actions: {
+    async fetchTodos({ commit }) {
+      commit('SET_LOADING', true);
+      commit('SET_ERROR', '');
+      try {
+        const res = await axios.get('/api/todos');
+        commit('SET_ITEMS', res.data);
+      } catch (err) {
+        commit('SET_ERROR', 'โหลดรายการไม่สำเร็จ');
+      } finally {
+        commit('SET_LOADING', false);
+      }
+    },
+    async addTodo({ commit }, text) {
+      if (!text || !text.trim()) {
+        commit('SET_ERROR', 'กรุณากรอกข้อความก่อนเพิ่มรายการ');
+        return false;
+      }
+      commit('SET_ERROR', '');
+      try {
+        const res = await axios.post('/api/todos', { text });
+        commit('ADD_ITEM', res.data);
+        return true;
+      } catch (err) {
+        commit('SET_ERROR', 'เพิ่มรายการไม่สำเร็จ');
+        return false;
+      }
+    },
+    async removeTodo({ commit }, id) {
+      await axios.delete(`/api/todos/${id}`);
+      commit('REMOVE_ITEM', id);
+    },
+    toggleTodo({ commit }, id) {
+      commit('TOGGLE_ITEM', id);
+    }
+  }
+};
+
+const todosStore = new Vuex.Store({ modules: { todos: todosModule } });
+
+new Vue({
+  el: '#demo-todos',
+  store: todosStore,
+  data() { return { newText: "", adding: false }; },
+  computed: {
+    ...Vuex.mapState('todos', ['items', 'loading', 'error']),
+    ...Vuex.mapGetters('todos', ['doneCount'])
+  },
+  methods: {
+    ...Vuex.mapActions('todos', ['fetchTodos', 'addTodo', 'removeTodo', 'toggleTodo']),
+    toggle(id) { this.toggleTodo(id); },
+    remove(id) { this.removeTodo(id); },
+    async onAddClick() {
+      this.adding = true;
+      const ok = await this.addTodo(this.newText);
+      this.adding = false;
+      if (ok) this.newText = "";
+    }
+  },
+  created() {
+    this.fetchTodos();
+  }
+});
+</script>
+</body>
+</html>

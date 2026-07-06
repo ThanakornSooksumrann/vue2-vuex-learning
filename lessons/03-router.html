@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03 · Vue Router — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue-router@3.6.5/dist/vue-router.js"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html" class="active"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 1 · พื้นฐาน 03/05</div>
+    <h1>Vue Router</h1>
+    <p class="lead">
+      Vue Router ทำให้แอปมีหลาย "หน้า" ได้โดยไม่ต้อง reload browser (Single Page Application) —
+      โปรเจกต์นี้ใช้ <strong>Vue Router 3</strong> (คู่กับ Vue 2) โหมด <code>history</code>
+      แต่ที่พิเศษคือ <strong>route ทั้งหมดถูกสร้างอัตโนมัติ</strong>จากโครงสร้างโฟลเดอร์ <code>views</code> ไม่ได้เขียน route ทีละบรรทัดเอง (รายละเอียดเต็ม ๆ อยู่บทที่ 07)
+    </p>
+
+    <h2>1. concept หลัก 3 อย่าง</h2>
+    <div class="grid-cards">
+      <div class="card">
+        <div class="card-num">ที่เดียว ต่อ 1 แอป</div>
+        <h4>routes</h4>
+        <p>รายการ mapping ระหว่าง path (เช่น <code>/customer</code>) กับ component ที่จะแสดง</p>
+      </div>
+      <div class="card">
+        <div class="card-num">วางในหน้า layout</div>
+        <h4>&lt;router-view&gt;</h4>
+        <p>"ช่อง" ที่ component ของ route ปัจจุบันจะไป render ใส่</p>
+      </div>
+      <div class="card">
+        <div class="card-num">ใช้แทน &lt;a&gt;</div>
+        <h4>&lt;router-link&gt;</h4>
+        <p>ลิงก์เปลี่ยนหน้าโดยไม่ reload browser (SPA navigation)</p>
+      </div>
+    </div>
+
+    <pre><code>// router/index.js
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+import Home from './views/Home.vue';
+import Customer from './views/Customer.vue';
+
+Vue.use(VueRouter);
+
+const routes = [
+  { path: '/', component: Home },
+  { path: '/customer', component: Customer }
+];
+
+const router = new VueRouter({
+  mode: 'history',   // URL สวย ไม่มี # (ต้องตั้งค่า server ให้ fallback มาที่ index.html)
+  routes
+});
+
+export default router;
+
+// main.js
+new Vue({
+  router,             // ผูก router เข้ากับ Vue instance
+  render: h => h(App)
+}).$mount('#app');
+
+// App.vue
+&lt;template&gt;
+  &lt;div&gt;
+    &lt;router-link to="/"&gt;หน้าแรก&lt;/router-link&gt;
+    &lt;router-link to="/customer"&gt;ลูกค้า&lt;/router-link&gt;
+    &lt;router-view /&gt;   &lt;!-- component ของ route ปัจจุบันจะมาโผล่ตรงนี้ --&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</code></pre>
+
+    <div class="playground">
+      <div class="pg-label">ตัวอย่างสด (ใช้โหมด hash เพื่อให้รันในไฟล์ static ได้โดยไม่ต้องมี server) <span class="live">● LIVE</span></div>
+      <div class="pg-body">
+        <div id="demo-router">
+          <router-link to="/">หน้าแรก</router-link> |
+          <router-link to="/customer/1001">ลูกค้า #1001</router-link> |
+          <router-link to="/customer/2002?tab=history">ลูกค้า #2002 (แท็บ history)</router-link>
+          <hr style="border-color:var(--border)" />
+          <router-view></router-view>
+        </div>
+      </div>
+    </div>
+
+    <h2>2. Dynamic params และ Query string</h2>
+    <table>
+      <thead><tr><th></th><th>รูปแบบ path</th><th>อ่านค่าใน component</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Params</strong> (ส่วนของ path)</td>
+          <td><code>/customer/:id</code> → <code>/customer/1001</code></td>
+          <td><code>this.$route.params.id</code> → <code>"1001"</code></td>
+        </tr>
+        <tr>
+          <td><strong>Query</strong> (ต่อท้ายด้วย ?)</td>
+          <td><code>/customer/1001?tab=history</code></td>
+          <td><code>this.$route.query.tab</code> → <code>"history"</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout project">
+      <div class="callout-title">แบบที่โปรเจกต์นี้ใช้จริง</div>
+      โปรเจกต์นี้แทบไม่ใช้ dynamic params (<code>:id</code>) เลย แต่จะส่งค่าผ่าน <strong>query string เป็นหลัก</strong> เช่น
+      <code>/Finance/InquiryCashReceiptUnknownContract/Index?mode=Inquiry&amp;modeFlag=1</code> แล้วรับค่าผ่าน props
+      <code>mode</code>, <code>modeFlag</code>, <code>modePage</code> ที่ router ผูกให้อัตโนมัติทุก route (ดูบทที่ 07)
+    </div>
+
+    <h2>3. Navigation Guard — ดักก่อน/หลังเปลี่ยนหน้า</h2>
+    <pre><code>router.beforeEach((to, from, next) => {
+  // to   = route ที่กำลังจะไป
+  // from = route ปัจจุบัน (ก่อนเปลี่ยน)
+  // next() = อนุญาตให้ไปต่อ, next(false) = ยกเลิก, next('/login') = เปลี่ยนเส้นทางแทน
+  if (to.meta.requiresAuth && !isLoggedIn()) {
+    next('/login');
+  } else {
+    next();
+  }
+});
+
+router.afterEach((to, from) => {
+  // ทำงานหลังเปลี่ยนหน้าสำเร็จแล้ว เช่น ส่ง analytics, ตั้งชื่อ title
+  document.title = to.meta.title || 'My App';
+});</code></pre>
+    <div class="callout project">
+      <div class="callout-title">แบบที่โปรเจกต์นี้ใช้จริง <span class="badge">src/app/router/index.js</span></div>
+      <code>router.beforeEach</code> ใช้ปิดการเชื่อมต่อ SignalR hub บางประเภทก่อนเปลี่ยนหน้า<br>
+      <code>router.afterEach</code> ใช้เคลียร์ temp data, เช็คว่ากำลังไปหน้า sign-in หรือเปล่า (ถ้าใช่ให้ reset store ทุก module), และเรียก <code>setTitle()</code> เพื่ออัปเดตชื่อหัวข้อ/breadcrumb ด้านบนจาก <code>MenuData</code>
+    </div>
+
+    <h2>4. Lazy loading — โหลด component เฉพาะตอนเข้าหน้านั้นจริง ๆ</h2>
+    <pre><code>// แทนที่จะ import ตรง ๆ (โหลดพร้อมกันหมดตั้งแต่แรก)
+import Customer from './views/Customer.vue';
+
+// ใช้ dynamic import แทน (โหลดเป็นไฟล์แยก โหลดเมื่อเข้า route นี้เท่านั้น)
+const routes = [
+  { path: '/customer', component: () => import('./views/Customer.vue') }
+];</code></pre>
+    <p>
+      สำคัญมากสำหรับแอปใหญ่แบบนี้ที่มีหน้าจอเป็นพันหน้า — ถ้าโหลดทุกหน้าตั้งแต่แรกจะทำให้หน้าเว็บโหลดช้ามาก
+      โปรเจกต์นี้ <strong>lazy-load ทุก route โดยอัตโนมัติ</strong> อยู่แล้ว (ดูบทที่ 07 ว่าทำยังไง)
+    </p>
+
+    <h2>5. Programmatic navigation — เปลี่ยนหน้าด้วยโค้ด</h2>
+    <pre><code>this.$router.push('/customer/1001');
+this.$router.push({ path: '/customer', query: { tab: 'history' } });
+this.$router.back();          // ย้อนกลับหน้าก่อนหน้า (เหมือนกด back)
+this.$router.replace('/login'); // เปลี่ยนหน้าโดยไม่เก็บ history (กด back แล้วไม่ย้อนมาหน้านี้)</code></pre>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li><code>routes</code> = แมพ path กับ component, <code>&lt;router-view&gt;</code> = ช่องแสดงผล, <code>&lt;router-link&gt;</code> = ลิงก์เปลี่ยนหน้า</li>
+      <li>อ่านค่าจาก URL ผ่าน <code>this.$route.params</code> (path) และ <code>this.$route.query</code> (query string)</li>
+      <li><code>beforeEach</code>/<code>afterEach</code> ใช้ดัก logic ก่อน-หลังเปลี่ยนหน้า (auth guard, set title)</li>
+      <li>ใช้ <code>() => import(...)</code> เพื่อ lazy-load component ของแต่ละหน้า</li>
+      <li>โปรเจกต์นี้ auto-generate route จากโฟลเดอร์ views และส่ง <code>mode/modeFlag/modePage</code> ผ่าน query string เป็น convention หลัก</li>
+    </ul>
+
+    <div class="pager">
+      <a href="02-lifecycle.html"><span class="dir">← ก่อนหน้า</span>02. Lifecycle ของ Vue</a>
+      <a href="04-vuex.html"><span class="dir">ถัดไป →</span>04. Vuex (State Management)</a>
+    </div>
+  </main>
+</div>
+
+<script>
+const Home = {
+  template: `<div><h4 style="margin-top:0;">หน้าแรก</h4><p style="color:var(--text-dim)">ยังไม่ได้เลือกลูกค้า</p></div>`
+};
+const Customer = {
+  props: ['id'],
+  template: `<div>
+      <h4 style="margin-top:0;">รายละเอียดลูกค้า</h4>
+      <p>Param <code>id</code> = <strong>{{ $route.params.id }}</strong></p>
+      <p>Query <code>tab</code> = <strong>{{ $route.query.tab || '(ไม่ได้ส่งมา)' }}</strong></p>
+    </div>`
+};
+
+const router = new VueRouter({
+  mode: 'hash', // ใช้ hash เพราะหน้านี้เปิดจากไฟล์ static ตรง ๆ ไม่มี server รองรับ history mode
+  routes: [
+    { path: '/', component: Home },
+    { path: '/customer/:id', component: Customer, props: true }
+  ]
+});
+
+new Vue({
+  el: '#demo-router',
+  router
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09 · ลงมือทำจริง — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html" class="active"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 2 · โปรเจกต์ KL.Core.UI 09/10</div>
+    <h1>ลงมือทำจริง: สร้างหน้าจอใหม่ 1 หน้าในโปรเจกต์นี้</h1>
+    <p class="lead">
+      รวมทุกอย่างจากบทที่ 01-08 มาเป็น checklist ที่ทำตามได้จริง สำหรับสร้างหน้าจอ CRUD/ค้นหาข้อมูลง่าย ๆ 1 หน้าใน KL.Core.UI
+      ใช้ตัวอย่างสมมติ: หน้าจอ "ค้นหาลูกค้า" (<code>SearchCustomer</code>) ใน module <code>Demo</code>
+    </p>
+
+    <div class="callout tip">
+      <div class="callout-title">ก่อนเริ่ม: ดูของตัวอย่างที่มีอยู่แล้วก่อนเสมอ</div>
+      โฟลเดอร์ <code>src/app/views/Demo/</code> (เช่น <code>Demo2.vue</code>, <code>TodoList.vue</code>, <code>CustomerDemo.vue</code>) และ
+      <code>src/app/store/views/Demo/Stores/</code> คือหน้าจอตัวอย่างที่ทีมทำไว้สำหรับฝึกเรียนรู้ pattern โดยเฉพาะ
+      เปิดไฟล์พวกนี้เทียบไปพร้อมกับทำ checklist ด้านล่างได้เลย
+    </div>
+
+    <h2>ขั้นตอนที่ 1 — สร้างไฟล์หน้าจอ (View)</h2>
+    <p>สร้างไฟล์ <code>src/app/views/Demo/SearchCustomer/Index.vue</code></p>
+    <div class="callout project">
+      <div class="callout-title">ทำไมต้องชื่อ <code>Index.vue</code> ในโฟลเดอร์แยก แทนที่จะเป็น <code>SearchCustomer.vue</code> ตรง ๆ</div>
+      ทั้งสองแบบใช้ได้ (route จะสร้างจาก path เสมอ) แต่ทีมนิยมแยกเป็นโฟลเดอร์ + <code>Index.vue</code> เมื่อหน้าจอมีหลาย component ย่อย (filter, detail, popup)
+      เพื่อเก็บไฟล์ที่เกี่ยวข้องกันไว้ในโฟลเดอร์เดียว เช่น <code>SearchCustomer/Components/SearchCustomerFilter.vue</code>
+    </div>
+    <pre><code>&lt;template&gt;
+  &lt;div&gt;
+    &lt;MainActionToolbar :actions="['reset']" @onReset="onReset"&gt;
+      &lt;kendo-toolbar-item type="button" icon="search" :text="$t('FF-BT-000003')" @click="onSearch" /&gt;
+    &lt;/MainActionToolbar&gt;
+
+    &lt;kendo-combobox
+      v-model="keyword"
+      :placeholder="'ค้นหาด้วยชื่อลูกค้า'"
+    &gt;&lt;/kendo-combobox&gt;
+
+    &lt;GridProxy
+      ref="grid"
+      :columns="columns"
+      :url="'/Customer/Search'"
+      :parameters="{ keyword }"
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+import { sync } from "vuex-pathify";
+import MainActionToolbar from "faco.core@shared/Controls/Toolbar/MainActionToolbar";
+import GridProxy from "faco.core@shared/Controls/Grid/GridProxy";
+
+export default {
+  components: { MainActionToolbar, GridProxy },
+  props: {
+    mode: { type: String, default() { return ""; } }
+  },
+  computed: {
+    ...sync("Demo_SearchCustomer/*")   // ต้องตรงกับชื่อ module ที่จะได้จากขั้นตอนที่ 2
+  },
+  data() {
+    return {
+      keyword: "",
+      columns: [
+        { field: "code", title: "รหัสลูกค้า" },
+        { field: "name", title: "ชื่อลูกค้า" }
+      ]
+    };
+  },
+  methods: {
+    onSearch() { this.$refs.grid.onPageLoad(1); },
+    onReset() { this.keyword = ""; }
+  },
+  mounted() {
+    this.$store.set("Layout_MasterLayout/setTitle", {
+      titleName: "ค้นหาลูกค้า",
+      subTitleName: "Demo > ค้นหาลูกค้า"
+    });
+  }
+};
+&lt;/script&gt;</code></pre>
+    <div class="callout tip">
+      <div class="callout-title">ทันทีที่บันทึกไฟล์นี้...</div>
+      route <code>/Demo/SearchCustomer/Index</code> จะถูกสร้างขึ้นเองอัตโนมัติ (บทที่ 07) — ไม่ต้องไปแก้ <code>router/index.js</code> เลย
+      แค่รอ webpack-dev-server compile เสร็จแล้วเข้า URL นั้นได้ทันที
+    </div>
+
+    <h2>ขั้นตอนที่ 2 — สร้าง Vuex Store module คู่กัน</h2>
+    <p>สร้างไฟล์ <code>src/app/store/views/Demo/Stores/SearchCustomer.js</code> (ต้องอยู่ใต้โฟลเดอร์ <code>Stores/</code> เสมอ ไม่งั้นจะไม่ถูก auto-register)</p>
+    <pre><code>import { make } from 'vuex-pathify';
+import axios from "faco.core@repository";
+
+function state() {
+  return {
+    dataInGrid: [],
+    totalItems: 0
+  };
+}
+
+const getters = {
+  ...make.getters(state)
+};
+
+const mutations = {
+  ...make.mutations(state)
+};
+
+const actions = {
+  ...make.actions(state),
+  searchCustomer({ commit }, payload) {
+    return new Promise(resolve => {
+      axios.financeApi.get('/Customer/Search', { params: payload })
+        .then(response => {
+          commit('dataInGrid', response.data.content);
+          commit('totalItems', response.data.total);
+          resolve(true);
+        })
+        .catch(() => resolve(false));
+    });
+  }
+};
+
+export default { namespaced: true, state, getters, actions, mutations };</code></pre>
+    <div class="callout project">
+      <div class="callout-title">เช็คชื่อ module ให้ตรงกันเป๊ะ ๆ</div>
+      ไฟล์นี้อยู่ที่ <code>store/views/Demo/Stores/SearchCustomer.js</code> → ชื่อ module ที่ auto-register จะเป็น <code>Demo_SearchCustomer</code>
+      ต้องตรงกับที่เขียนใน <code>sync("Demo_SearchCustomer/*")</code> ในไฟล์ view ขั้นตอนที่ 1 เป๊ะ ๆ (ตัวพิมพ์ใหญ่-เล็กก็ต้องตรง) ไม่งั้น sync จะไม่เจอ module และเงียบ ๆ ไม่มี error ชัดเจน
+    </div>
+
+    <h2>ขั้นตอนที่ 3 — เพิ่มคำแปลภาษา (ถ้ามีข้อความใหม่)</h2>
+    <p>ข้อความ label/ปุ่มควรใช้ <code>this.$t("KEY")</code> แทนการ hardcode ข้อความไทย/อังกฤษตรง ๆ เพื่อรองรับสองภาษา — ไปเพิ่ม key ใหม่ในไฟล์ locale ที่ <code>src/locales/</code></p>
+
+    <h2>ขั้นตอนที่ 4 — รันดูผลจริง</h2>
+    <pre><code># เลือก script ให้ตรงกับ module ที่กำลังทำงานอยู่ (ดูบทที่ 06)
+npm run local            # ทุก module
+npm run local-finance    # เฉพาะ Finance
+npm run local-main       # Finance,HPAdmin,Legal,Collection</code></pre>
+    <p>เข้า URL ตามโครงสร้างไฟล์ที่สร้าง: <code>http://localhost:8080/Demo/SearchCustomer/Index</code></p>
+
+    <h2>Checklist สรุปทั้งหมด</h2>
+    <ul class="checklist">
+      <li>สร้าง <code>.vue</code> ใต้ <code>src/app/views/&lt;Domain&gt;/&lt;ScreenName&gt;/Index.vue</code> — route จะเกิดเองตาม path นี้</li>
+      <li>สร้าง <code>.js</code> ใต้ <code>src/app/store/views/&lt;Domain&gt;/Stores/&lt;ScreenName&gt;.js</code> — ตั้งชื่อให้ตรงกับ path เพื่อให้ <code>sync()</code> ใน view เจอ module</li>
+      <li>ใช้ <code>MainActionToolbar</code> แทนปุ่ม save/reset เอง, ใช้ <code>GridProxy</code> แทน grid+datasource เอง</li>
+      <li>เรียก API ผ่าน <code>faco.core@repository</code> เท่านั้น (ได้ loading + auth header ให้ฟรี)</li>
+      <li>ตั้งชื่อ title หน้าจอผ่าน <code>$store.set("Layout_MasterLayout/setTitle", {...})</code> ใน <code>mounted()</code></li>
+      <li>ใช้ <code>$t("KEY")</code> สำหรับข้อความที่ต้องรองรับ 2 ภาษา แทนการ hardcode</li>
+      <li>รับค่าจาก URL ผ่าน props <code>mode/modeFlag/modePage</code> แทนการอ่าน <code>$route.query</code> เอง (ถ้าเป็น query มาตรฐานของระบบ)</li>
+      <li>ถ้าต้องการ dialog/alert ใช้ <code>AlertMessage</code>/<code>kendo-window</code> ที่มีอยู่แล้ว ไม่ประกอบ Kendo Window เอง</li>
+    </ul>
+
+    <div class="callout tip">
+      <div class="callout-title">ติดตรงไหน ให้ทำแบบนี้</div>
+      1) หา pattern คล้าย ๆ กันใน <code>src/app/views/Demo/</code> หรือ module ที่ใกล้เคียงที่สุดก่อน (เช่นถ้าทำหน้า Finance ให้ดูตัวอย่างใน <code>src/app/views/Finance/</code>)<br>
+      2) เปิดไฟล์ shared component ตรง ๆ ใน <code>src/app/shared/</code> เพื่อดู props/events ที่รองรับจริง (props ที่เขียนในบทเรียนนี้เป็นตัวอย่างหลัก ๆ อาจไม่ครบ 100%)<br>
+      3) กลับมาอ่านบทที่ 07 (Router &amp; Vuex ของโปรเจกต์) ซ้ำถ้าเจอปัญหาเรื่อง store module ไม่เจอ/undefined
+    </div>
+
+    <hr class="sep">
+    <div class="callout tip">
+      <div class="callout-title">จบคอร์ส!</div>
+      ตอนนี้ควรจะเข้าใจภาพรวมพอที่จะเริ่มอ่านโค้ดจริงในโปรเจกต์และเริ่มแก้ไข/สร้างหน้าจอเล็ก ๆ ได้แล้ว
+      แนะนำให้กลับไปเปิดไฟล์ตัวอย่างจริงที่อ้างอิงไว้ในแต่ละบทควบคู่ไปด้วยเสมอ เพราะโค้ดจริงมีรายละเอียดปลีกย่อยมากกว่าตัวอย่างในบทเรียนนี้เสมอ
+    </div>
+
+    <div class="pager">
+      <a href="08-shared-components.html"><span class="dir">← ก่อนหน้า</span>08. Shared Components / Layout</a>
+      <a href="10-shared-reference.html"><span class="dir">ถัดไป →</span>10. Shared Component/Store/Utility ทั้งหมด</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

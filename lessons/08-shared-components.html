@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>08 · Shared Components / Layout — Learning Vue/Vuex</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot">●</span> Learning Vue/Vuex</div>
+    <div class="subtitle">คอร์สปูพื้นฐานสำหรับทีม KL.Core.UI</div>
+    <nav>
+      <a href="../index.html"><span class="num">•</span> หน้าแรก</a>
+      <a href="glossary.html"><span class="num">?</span> คำศัพท์เฉพาะ (Glossary)</a>
+      <div class="group-title">ส่วนที่ 1 — พื้นฐานทั่วไป</div>
+      <a href="01-vue-basics.html"><span class="num">01</span> Vue.js พื้นฐาน</a>
+      <a href="02-lifecycle.html"><span class="num">02</span> Lifecycle ของ Vue</a>
+      <a href="03-router.html"><span class="num">03</span> Vue Router</a>
+      <a href="04-vuex.html"><span class="num">04</span> Vuex (State Management)</a>
+      <a href="05-kendo-ui.html"><span class="num">05</span> Kendo UI for Vue</a>
+      <div class="group-title">ส่วนที่ 2 — โปรเจกต์ KL.Core.UI</div>
+      <a href="06-project-overview.html"><span class="num">06</span> ภาพรวมสถาปัตยกรรมโปรเจกต์</a>
+      <a href="07-project-router-store.html"><span class="num">07</span> Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="08-shared-components.html" class="active"><span class="num">08</span> Shared Components / Layout</a>
+      <a href="09-hands-on.html"><span class="num">09</span> ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+      <a href="10-shared-reference.html"><span class="num">10</span> Shared Component/Store/Utility ทั้งหมด</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="eyebrow">ส่วนที่ 2 · โปรเจกต์ KL.Core.UI 08/10</div>
+    <h1>Shared Components &amp; Layout ที่ทีมทำไว้แล้ว</h1>
+    <p class="lead">
+      กฎสำคัญที่สุดของบทนี้: <strong>ก่อนจะเขียนอะไรใหม่ ให้เช็คก่อนว่ามี shared component ทำไว้ให้แล้วหรือยัง</strong>
+      ทั้งหมดอยู่ใต้ <code>src/app/shared/</code> เข้าถึงผ่าน alias <code>faco.core@shared/...</code>
+    </p>
+
+    <h2>1. MasterLayout.vue — เปลือกหลักของทั้งแอป</h2>
+    <p>ไฟล์จริง: <code>src/app/shared/Layout/MasterLayout.vue</code> — component นี้ถูกแสดงโดย <code>App.vue</code> หลัง login สำเร็จ โครงสร้างคือ:</p>
+    <pre><code>&lt;b-app&gt;
+  &lt;header&gt;                     &lt;!-- โลโก้, ชื่อหน้า/breadcrumb, ปุ่ม logout, สลับภาษา, ชื่อ user --&gt;
+  &lt;aside&gt;
+    &lt;kendo-treeview :data-source="navDataSource" @select="onSelectMenu" /&gt;  &lt;!-- เมนู sidebar --&gt;
+  &lt;/aside&gt;
+  &lt;section class="main-content"&gt;
+    &lt;router-view :key="fullPath" class="view"&gt;&lt;/router-view&gt;   &lt;!-- หน้าจอปัจจุบันมาโผล่ตรงนี้ --&gt;
+  &lt;/section&gt;
+&lt;/b-app&gt;</code></pre>
+    <div class="callout tip">
+      <div class="callout-title">ทำไม <code>router-view</code> ถึงมี <code>:key="fullPath"</code>?</div>
+      ปกติถ้าเปลี่ยนแค่ query string (เช่น <code>?mode=Inquiry</code> → <code>?mode=Edit</code>) โดย path เดิม Vue Router จะ<strong>ไม่ re-create component ใหม่</strong> (แค่ update props)
+      การใส่ <code>:key="fullPath"</code> (path + query) บังคับให้ Vue เห็นว่าเป็น component คนละตัวทุกครั้งที่ query เปลี่ยน จึงจะเรียก <code>created/mounted</code> ใหม่เสมอ —
+      สำคัญมากเพราะโปรเจกต์นี้พึ่งพา <code>mode/modeFlag/modePage</code> จาก query string เพื่อ reset สถานะของหน้าจอ
+    </div>
+    <p>เวลาสร้างหน้าจอใหม่ <strong>ไม่ต้องไปยุ่งกับ MasterLayout เลย</strong> — แค่สร้างไฟล์ view ให้ถูกที่ (บทที่ 07/09) มันจะไปโผล่ใน <code>router-view</code> ให้เอง</p>
+
+    <h2>2. Grid ตระกูล GridProxy / GridDisplay — ไม่ต้องประกอบ Kendo Grid เอง</h2>
+    <p>ไฟล์: <code>src/app/shared/Controls/Grid/GridProxy.vue</code> — ครอบ <code>kendo-datasource</code> + <code>GridDisplay</code> ให้แล้ว รองรับ server-side paging/filter/sort</p>
+    <pre><code>&lt;GridProxy
+  ref="myGrid"
+  :columns="[
+    { field: 'code', title: 'รหัสลูกค้า' },
+    { field: 'name', title: 'ชื่อลูกค้า' }
+  ]"
+  :url="'/api/customer/search'"
+  :parameters="{ status: 'active' }"
+  :height="400"
+  @onRowClick="onRowClick"
+&gt;
+  &lt;template #btnOptionR&gt;&lt;button&gt;Export&lt;/button&gt;&lt;/template&gt;   &lt;!-- ปุ่มเสริมมุมขวาบน --&gt;
+&lt;/GridProxy&gt;</code></pre>
+    <table>
+      <thead><tr><th>Component</th><th>ใช้เมื่อไหร่</th></tr></thead>
+      <tbody>
+        <tr><td><code>GridProxy</code></td><td>ต้องการตารางที่ดึงข้อมูลจาก API เอง พร้อม paging/filter/sort ฝั่ง server (ใช้บ่อยที่สุด)</td></tr>
+        <tr><td><code>GridDisplay</code></td><td>แสดงตารางจาก data ที่มีอยู่แล้วใน component (ไม่ต้องยิง API เอง — <code>GridProxy</code> ใช้ตัวนี้อยู่ข้างในอีกที)</td></tr>
+        <tr><td><code>GridLazyLoad</code></td><td>ตารางแบบ virtual scroll (ข้อมูลเยอะมาก โหลดเพิ่มตอน scroll)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. MainActionToolbar — แถบปุ่มมาตรฐานด้านบนหน้าจอ</h2>
+    <p>ไฟล์: <code>src/app/shared/Controls/Toolbar/MainActionToolbar.vue</code> — ให้ปุ่ม save/reset มาตรฐานพร้อมข้อความแปลภาษาให้แล้ว เพิ่มปุ่มพิเศษผ่าน default slot ได้</p>
+    <pre><code>&lt;MainActionToolbar :actions="['reset']" @onReset="onReset"&gt;
+  &lt;kendo-toolbar-item type="button" icon="search" :text="$t('FF-BT-000003')" @click="onSearch" /&gt;
+&lt;/MainActionToolbar&gt;</code></pre>
+
+    <h2>4. FormGroup + Vuelidate — validate ฟอร์มแบบมาตรฐาน</h2>
+    <p>ไฟล์: <code>src/app/shared/Controls/Form/FormGroup.vue</code> — ถูก register เป็น plugin ของ <code>vuelidate-error-extractor</code> ไว้แล้วในระดับแอป ทำให้ error message ของ Vuelidate โชว์เป็น tooltip ที่หน้าตาเหมือนกันทั้งระบบโดยอัตโนมัติ ไม่ต้องเขียน error display เอง</p>
+
+    <h2>5. Modal / Dialog มาตรฐาน — เรียกผ่าน App.vue ได้จากทุกที่</h2>
+    <table>
+      <thead><tr><th>Component</th><th>ไฟล์</th><th>ใช้ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><td><code>AlertMessage</code></td><td><code>shared/Controls/Modal/AlertMessage.vue</code></td><td>แจ้งเตือน/ยืนยัน (title, message, status code)</td></tr>
+        <tr><td><code>LoadingModal</code></td><td><code>shared/Controls/Modal/LoadingModal.vue</code></td><td>หน้าจอ loading ระหว่างรอ API (ถูกเปิด/ปิดอัตโนมัติจาก interceptor ของ axios)</td></tr>
+        <tr><td><code>SearchModal</code></td><td><code>shared/Controls/Modal/SearchModal.vue</code></td><td>popup ค้นหา/เลือกข้อมูล (lookup)</td></tr>
+        <tr><td><code>BaseWindow</code> (<code>&lt;kendo-window&gt;</code>)</td><td><code>shared/BaseComponents/BaseWindow.vue</code></td><td>ครอบ Kendo <code>Window</code> ไว้อีกชั้น ส่ง slot/listener ทะลุผ่านให้หมด</td></tr>
+      </tbody>
+    </table>
+    <pre><code>// เรียก alert จาก component ไหนก็ได้ ผ่าน App.vue (root)
+this.$root.App.alertMessage("แจ้งเตือน", "บันทึกไม่สำเร็จ กรุณาลองใหม่", 400);
+
+// เปิด/ปิด kendo-window ของตัวเอง
+this.$refs.myWindow.kendoWidget().center().open();</code></pre>
+
+    <h2>6. Cell components — ตัว editor ในแต่ละคอลัมน์ของ Grid</h2>
+    <p>อยู่ใต้ <code>src/app/shared/Controls/Cell/</code> ใช้เป็น custom cell template ของ Kendo Grid เมื่อ column ต้องการ input พิเศษ (ไม่ใช่แค่ text ธรรมดา)</p>
+    <table>
+      <thead><tr><th>Component</th><th>ใช้กับคอลัมน์แบบไหน</th></tr></thead>
+      <tbody>
+        <tr><td><code>CellTextbox</code></td><td>กรอกข้อความ</td></tr>
+        <tr><td><code>CellNumeric</code></td><td>ตัวเลข (มี min/max/decimal/spinners)</td></tr>
+        <tr><td><code>CellDatePicker</code></td><td>เลือกวันที่</td></tr>
+        <tr><td><code>CellDropDownStatus</code></td><td>เลือกสถานะจาก dropdown</td></tr>
+        <tr><td><code>CellCheckbox</code></td><td>ติ๊กถูก</td></tr>
+        <tr><td><code>CellHyperLink</code></td><td>ลิงก์ที่คลิกแล้วเปิดหน้าอื่น/emit event</td></tr>
+        <tr><td><code>CellUploadFile</code></td><td>อัปโหลดไฟล์ในแถวของ grid</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. repository.js — จุดเดียวที่เรียก API ทั้งระบบผ่าน</h2>
+    <p>ไฟล์: <code>src/app/repositories/repository.js</code> (import ผ่าน alias <code>faco.core@repository</code>) — ครอบ axios ไว้ให้แยกเป็นตัวแปรต่อ API</p>
+    <pre><code>import axios from "faco.core@repository";
+
+// axios.<ชื่อ api ตาม config> — แต่ละตัวมี baseURL, interceptor แนบ token ให้อัตโนมัติ
+axios.financeApi.get('/Customer/Search', { params });
+axios.systemConfigApi.get('/System/SystemDate');
+axios.reportDataApi.post('/Export/Excel', payload);</code></pre>
+    <div class="callout tip">
+      <div class="callout-title">ทำไมต้องเรียกผ่าน <code>faco.core@repository</code> เสมอ</div>
+      Interceptor ใน <code>repository.js</code> จัดการให้อัตโนมัติ 3 อย่าง: แนบ <code>token</code>/<code>clientId</code> ทุก request,
+      เปิด/ปิด <code>LoadingModal</code> อัตโนมัติ (ยกเว้นตั้ง <code>__hideLoading__: true</code>), และดักจัดการ error/401 กลาง ๆ ที่เดียว
+      ถ้า import axios ตรง ๆ เองจะไม่ได้พฤติกรรมพวกนี้
+    </div>
+
+    <h2>สรุปสิ่งที่ต้องจำ</h2>
+    <ul class="checklist">
+      <li>ไม่ต้องแตะ <code>MasterLayout</code> เอง — router-view จะแสดงหน้าจอที่สร้างให้อัตโนมัติ</li>
+      <li>ต้องการตาราง → ใช้ <code>GridProxy</code> ก่อนเสมอ อย่าประกอบ <code>kendo-datasource</code>+<code>kendo-grid</code> เอง</li>
+      <li>ต้องการปุ่ม save/reset มาตรฐาน → <code>MainActionToolbar</code></li>
+      <li>ต้องการ validate ฟอร์ม → <code>FormGroup</code> + Vuelidate</li>
+      <li>ต้องการแจ้งเตือน/popup → <code>AlertMessage</code>, <code>LoadingModal</code>, <code>SearchModal</code>, <code>kendo-window</code></li>
+      <li>เรียก API เสมอผ่าน <code>faco.core@repository</code> ไม่ import axios ตรง ๆ</li>
+    </ul>
+
+    <div class="pager">
+      <a href="07-project-router-store.html"><span class="dir">← ก่อนหน้า</span>07. Router &amp; Vuex ของโปรเจกต์</a>
+      <a href="09-hands-on.html"><span class="dir">ถัดไป →</span>09. ลงมือทำจริง: สร้างหน้าจอใหม่</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>
